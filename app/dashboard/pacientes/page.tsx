@@ -78,7 +78,9 @@ export default async function PacientesPage({
             {pacientes?.map((p) => (
               <tr key={p.pac_id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-2.5 font-medium text-slate-800">
-                  {p.pac_nombre?.trim()}
+                  <Link href={`/dashboard/pacientes/${p.pac_id}`} className="hover:text-blue-600 hover:underline">
+                    {p.pac_nombre?.trim()}
+                  </Link>
                 </td>
                 <td className="px-4 py-2.5 text-lg">
                   {ESPECIE[p.pac_raz_siglas?.trim()] ?? "🐾"}

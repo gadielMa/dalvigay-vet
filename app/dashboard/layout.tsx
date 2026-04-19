@@ -17,6 +17,7 @@ export default async function DashboardLayout({
     { href: "/dashboard/pacientes", label: "🐾 Pacientes" },
     { href: "/dashboard/historia-clinica", label: "📋 Historia Clínica" },
     { href: "/dashboard/vacunas", label: "💉 Vacunas" },
+    { href: "/dashboard/vacunas/recordatorios", label: "📧 Recordatorios" },
     { href: "/dashboard/ecografias", label: "🔬 Ecografías" },
     { href: "/dashboard/analisis", label: "🧪 Análisis" },
     { href: "/dashboard/rayos", label: "☢️ Rayos X" },
