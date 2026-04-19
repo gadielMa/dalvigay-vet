@@ -16,7 +16,7 @@ export async function enviarRecordatorio(data: RecordatorioData) {
   const emoji = espEmoji[data.mascotaEspecie] ?? "🐾";
 
   const { error } = await resend.emails.send({
-    from: "Veterinaria Dalvigay <recordatorios@dalvigay.com.ar>",
+    from: "Veterinaria Dalvigay <recordatorios@mail.dalvigay.com.ar>",
     to: data.toEmail,
     subject: `${emoji} Recordatorio de vacuna para ${data.mascotaNombre}`,
     html: `
