@@ -28,7 +28,7 @@ export async function login(
   const { data: user, error } = await supabase
     .from("ta_usuarios")
     .select("usr_id, usr_nombre, usr_pass, usr_numper")
-    .eq("usr_nombre", nombre)
+    .ilike("usr_nombre", nombre.trim())
     .single();
 
   if (error || !user) return { ok: false, error: "Usuario no encontrado" };
