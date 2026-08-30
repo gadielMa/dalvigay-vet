@@ -52,7 +52,7 @@ export default async function PacienteDetailPage({
       </div>
 
       {/* Ficha */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid min-w-0 grid-cols-1 gap-4 mb-6 md:grid-cols-2">
         <div className="bg-white rounded-xl border shadow-sm p-4">
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Datos del paciente</h2>
           <dl className="space-y-1.5 text-sm">
@@ -233,12 +233,12 @@ export default async function PacienteDetailPage({
   );
 }
 
-function Row({ label, value, mono }: { label: string; value?: string; mono?: boolean }) {
+function Row({ label, value, mono }: { label: string; value?: React.ReactNode; mono?: boolean }) {
   if (!value || value === "0") return null;
   return (
-    <div className="flex gap-2">
+    <div className="flex min-w-0 gap-2">
       <dt className="text-slate-500 w-24 shrink-0">{label}</dt>
-      <dd className={`text-slate-800 ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dd className={`min-w-0 break-words text-slate-800 ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
     </div>
   );
 }
