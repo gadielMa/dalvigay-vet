@@ -22,14 +22,26 @@ export default async function PacienteDetailPage({
     { data: rayos },
     { data: hemogramas },
     { data: consultasNuevas },
+    { data: orinas },
+    { data: quimicas },
+    { data: ectoendos },
+    { data: electros },
+    { data: estudios },
+    { data: movimientos },
   ] = await Promise.all([
     supabase.from("pacientes").select("*").eq("pac_id", id).single(),
-    supabase.from("hcren").select("hcr_id,hcr_fecha_hc,hcr_titulo,hcr_peso,hcr_temp,hcr_detalle,hcr_dr").eq("hcr_hcc_idpaciente", id).order("hcr_fecha_hc", { ascending: false }),
-    supabase.from("vacunas").select("vac_id,vac_fvisita,vac_fproxima,vac_marca,vac_clase,vac_dr,vac_volvio").eq("vac_idpaciente", id).order("vac_fvisita", { ascending: false }),
-    supabase.from("ecografias").select("eco_id,eco_fecha,eco_estudio,eco_diag,eco_dr").eq("eco_idpaciente", id).order("eco_fecha", { ascending: false }),
-    supabase.from("rayos").select("ray_id,ray_fvisita,ray_estudio,ray_diag,ray_dr").eq("ray_idpaciente", id).order("ray_fvisita", { ascending: false }),
-    supabase.from("hemogramas").select("hem_id,hem_fvisita,hem_dr,hem_leucocitos,hem_hemoglobina,hem_hematocritos,hem_plaquetas").eq("hem_idpaciente", id).order("hem_fvisita", { ascending: false }),
+    supabase.from("hcren").select("*").eq("hcr_hcc_idpaciente", id).order("hcr_fecha_hc", { ascending: false }),
+    supabase.from("vacunas").select("*").eq("vac_idpaciente", id).order("vac_fvisita", { ascending: false }),
+    supabase.from("ecografias").select("*").eq("eco_idpaciente", id).order("eco_fecha", { ascending: false }),
+    supabase.from("rayos").select("*").eq("ray_idpaciente", id).order("ray_fvisita", { ascending: false }),
+    supabase.from("hemogramas").select("*").eq("hem_idpaciente", id).order("hem_fvisita", { ascending: false }),
     supabase.from("consultas_nuevas").select("*").eq("paciente_id", id).order("fecha", { ascending: false }),
+    supabase.from("orina").select("*").eq("ori_idpaciente", id).order("ori_fecha", { ascending: false }),
+    supabase.from("quimicasang").select("*").eq("qs_idpaciente", id).order("qs_fvisita", { ascending: false }),
+    supabase.from("ectoendo").select("*").eq("ee_idpaciente", id).order("ee_fvisita", { ascending: false }),
+    supabase.from("electrocardio").select("*").eq("ele_idpaciente", id).order("ele_fecha", { ascending: false }),
+    supabase.from("estudios").select("*").eq("est_idpaciente", id).order("est_fvisita", { ascending: false }),
+    supabase.from("movimientos").select("*").eq("mov_idpaciente", id).order("mov_fecha", { ascending: false }).limit(100),
   ]);
 
   if (!paciente) notFound();
@@ -57,13 +69,19 @@ export default async function PacienteDetailPage({
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Datos del paciente</h2>
           <dl className="space-y-1.5 text-sm">
             <Row label="Nombre" value={paciente.pac_nombre?.trim()} />
+            <Row label="Apellido" value={paciente.pac_apellido?.trim()} />
+            <Row label="Nombre completo" value={paciente.pac_nomcomp?.trim()} />
             <Row label="Raza" value={paciente.pac_raz_nombre?.trim()} />
             <Row label="Sexo" value={paciente.pac_sexo === "M" ? "♂ Macho" : paciente.pac_sexo === "H" ? "♀ Hembra" : paciente.pac_sexo?.trim()} />
             <Row label="Nacimiento" value={paciente.pac_fecha_nac?.trim()} />
             <Row label="Color" value={paciente.pac_color?.trim()} />
             <Row label="Peso" value={paciente.pac_peso?.trim() ? `${paciente.pac_peso.trim()} kg` : undefined} />
             <Row label="Microchip" value={paciente.pac_microchip?.trim()} mono />
+            <Row label="Fecha de alta" value={paciente.pac_fecha_alta?.trim()} />
+            <Row label="Última modificación" value={paciente.pac_ultima_modificacion?.trim()} />
+            <Row label="Fecha de baja" value={paciente.pac_fecha_des?.trim()} />
           </dl>
+          {paciente.pac_obser?.trim() && <div className="mt-4 border-t pt-3 text-sm"><div className="mb-1 text-xs font-medium text-slate-500">Observaciones</div><p className="whitespace-pre-wrap text-slate-700">{paciente.pac_obser.trim()}</p></div>}
         </div>
         {cliente && (
           <div className="bg-white rounded-xl border shadow-sm p-4">
@@ -86,6 +104,9 @@ export default async function PacienteDetailPage({
           { icon: "🔬", count: ecografias?.length ?? 0, label: "ecografías" },
           { icon: "☢️", count: rayos?.length ?? 0, label: "rayos" },
           { icon: "🩸", count: hemogramas?.length ?? 0, label: "hemogramas" },
+          { icon: "🧪", count: orinas?.length ?? 0, label: "orinas" },
+          { icon: "⚗️", count: quimicas?.length ?? 0, label: "químicas" },
+          { icon: "🪱", count: ectoendos?.length ?? 0, label: "ecto/endo" },
         ].map((s) => (
           <div key={s.label} className="bg-white border rounded-lg px-4 py-2 flex items-center gap-2 text-sm shadow-sm">
             <span>{s.icon}</span>
@@ -229,9 +250,23 @@ export default async function PacienteDetailPage({
           </div>
         </Section>
       )}
+
+      {orinas && orinas.length > 0 && <Section title="🧪 Análisis de orina" count={orinas.length}><RegistrosCompletos registros={orinas} fecha="ori_fecha" titulo="ori_dr" /></Section>}
+      {quimicas && quimicas.length > 0 && <Section title="⚗️ Química sanguínea" count={quimicas.length}><RegistrosCompletos registros={quimicas} fecha="qs_fvisita" titulo="qs_dr" /></Section>}
+      {ectoendos && ectoendos.length > 0 && <Section title="🪱 Ecto / endoparasitarios" count={ectoendos.length}><RegistrosCompletos registros={ectoendos} fecha="ee_fvisita" titulo="ee_tipo" /></Section>}
+      {electros && electros.length > 0 && <Section title="❤️ Electrocardiogramas" count={electros.length}><RegistrosCompletos registros={electros} fecha="ele_fecha" titulo="ele_estudio" /></Section>}
+      {estudios && estudios.length > 0 && <Section title="🔎 Estudios" count={estudios.length}><RegistrosCompletos registros={estudios} fecha="est_fvisita" titulo="est_titulo" /></Section>}
+      {movimientos && movimientos.length > 0 && <Section title="🕒 Movimientos registrados" count={movimientos.length}><RegistrosCompletos registros={movimientos} fecha="mov_fecha" titulo="mov_persona" /></Section>}
     </div>
   );
 }
+
+function RegistrosCompletos({ registros, fecha, titulo }: { registros: Record<string, unknown>[]; fecha: string; titulo: string }) {
+  return <div className="space-y-3">{registros.map((registro, index) => <details key={index} className="rounded-xl border bg-white p-4 shadow-sm"><summary className="cursor-pointer list-none text-sm font-medium text-slate-800"><span>{texto(registro[fecha]) || "Sin fecha"}</span><span className="text-slate-500"> · {texto(registro[titulo]) || "Ver resultados completos"}</span><span className="float-right text-xs text-blue-700">Ver detalle</span></summary><dl className="mt-4 grid gap-x-5 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">{Object.entries(registro).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && texto(value)).map(([key, value]) => <div key={key} className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{etiqueta(key)}</dt><dd className="break-words text-slate-800">{texto(value)}</dd></div>)}</dl></details>)}</div>;
+}
+
+function texto(value: unknown) { const result = String(value ?? "").trim(); return result === "0" ? "" : result; }
+function etiqueta(key: string) { return key.replace(/^(ori|qs|ee|ele|est|mov|hem|vac|eco|ray)_/i, "").replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase()); }
 
 function Row({ label, value, mono }: { label: string; value?: React.ReactNode; mono?: boolean }) {
   if (!value || value === "0") return null;
