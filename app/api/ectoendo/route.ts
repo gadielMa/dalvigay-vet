@@ -1,0 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireSession } from "@/lib/operacion";
+import { createAdminClient } from "@/lib/supabase/admin";
+const text=(v:unknown)=>String(v??"").trim();
+export async function POST(req:NextRequest){try{const session=await requireSession();const b=await req.json();const paciente=Number(b.paciente_id);const fecha=text(b.fecha);const tipo=text(b.tipo);if(!Number.isInteger(paciente)||!fecha||!tipo)return NextResponse.json({error:"Completá fecha y tipo de tratamiento"},{status:400});const s=createAdminClient();const{data:last}=await s.from("ectoendo").select("ee_id").order("ee_id",{ascending:false}).limit(1).maybeSingle();const{data,error}=await s.from("ectoendo").insert({ee_id:Number(last?.ee_id??0)+1,ee_idpaciente:String(paciente),ee_fvisita:fecha,ee_fr:"",ee_ft:"",ee_fproxima:text(b.proxima),ee_dr:text(b.dr)||session.nombre,ee_tipo:tipo,ee_detalle:text(b.detalle)}).select().single();if(error)throw error;return NextResponse.json(data,{status:201});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"No se pudo guardar el tratamiento"},{status:500});}}

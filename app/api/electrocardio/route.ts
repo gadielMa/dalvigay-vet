@@ -1,0 +1,5 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireSession } from "@/lib/operacion";
+import { createAdminClient } from "@/lib/supabase/admin";
+const text=(v:unknown)=>String(v??"").trim();
+export async function POST(req:NextRequest){try{const session=await requireSession();const b=await req.json();const paciente=Number(b.paciente_id);const fecha=text(b.fecha);const estudio=text(b.estudio);if(!Number.isInteger(paciente)||!fecha||!estudio)return NextResponse.json({error:"Completá fecha y estudio"},{status:400});const s=createAdminClient();const{data:last}=await s.from("electrocardio").select("ele_id").order("ele_id",{ascending:false}).limit(1).maybeSingle();const{data,error}=await s.from("electrocardio").insert({ele_id:Number(last?.ele_id??0)+1,ele_idpaciente:String(paciente),ele_fecha:fecha,ele_dr:text(b.dr)||session.nombre,ele_estudio:estudio,ele_foto:text(b.foto),ele_diag:text(b.diagnostico)}).select().single();if(error)throw error;return NextResponse.json(data,{status:201});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"No se pudo guardar el electrocardiograma"},{status:500});}}
