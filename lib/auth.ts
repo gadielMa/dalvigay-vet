@@ -25,11 +25,18 @@ export async function login(
 ): Promise<{ ok: boolean; error?: string }> {
   const supabase = createAdminClient();
 
-  const { data: user, error } = await supabase
+  const { data: users, error } = await supabase
     .from("ta_usuarios")
-    .select("usr_id, usr_nombre, usr_pass, usr_numper")
-    .ilike("usr_nombre", nombre.trim())
-    .single();
+    .select("usr_id, usr_nombre, usr_pass, usr_numper");
+
+  // Los nombres importados desde MySQL pueden traer espacios de relleno
+  // (CHAR) o diferencias de mayúsculas. Normalizamos antes de comparar.
+  const normalizedName = nombre.trim().toLocaleLowerCase();
+  const user = users?.find(
+    (candidate) =>
+      String(candidate.usr_nombre ?? "").trim().toLocaleLowerCase() ===
+      normalizedName,
+  );
 
   if (error || !user) return { ok: false, error: "Usuario no encontrado" };
 
