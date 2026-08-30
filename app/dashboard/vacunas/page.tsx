@@ -50,7 +50,7 @@ export default async function VacunasPage({
         {q && <Link href="/dashboard/vacunas"><Button variant="outline" size="sm">Limpiar</Button></Link>}
       </form>
 
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b">
             <tr>

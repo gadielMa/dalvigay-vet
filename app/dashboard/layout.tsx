@@ -57,7 +57,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main */}
-      <main className="min-w-0 flex-1 overflow-auto p-4 pt-20 sm:p-6 sm:pt-20 md:pt-6">{children}</main>
+      <main className="min-w-0 flex-1 overflow-auto p-4 sm:p-6">{children}</main>
     </div>
   );
 }

@@ -111,7 +111,7 @@ export default async function ClientesPage({
         </div>
       </form>
 
-      <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
+      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b">
             <tr>
@@ -128,8 +128,8 @@ export default async function ClientesPage({
             {clientes?.map((c) => (
               <tr key={c.cli_id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-2.5 text-slate-400 text-xs">{c.cli_id}</td>
-                <td className="px-4 py-2.5 font-medium text-slate-800">{c.cli_apellido?.trim()}</td>
-                <td className="px-4 py-2.5 text-slate-700">{c.cli_nombre?.trim()}</td>
+                <td className="px-4 py-2.5 font-medium text-slate-800"><Link href={`/dashboard/clientes/${c.cli_id}`} className="hover:text-blue-700 hover:underline">{c.cli_apellido?.trim()}</Link></td>
+                <td className="px-4 py-2.5 text-slate-700"><Link href={`/dashboard/clientes/${c.cli_id}`} className="hover:text-blue-700 hover:underline">{c.cli_nombre?.trim()}</Link></td>
                 <td className="px-4 py-2.5 text-slate-600">{c.cli_celu?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-600 text-xs">
                   {c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "—"}

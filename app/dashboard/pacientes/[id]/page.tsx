@@ -131,7 +131,7 @@ export default async function PacienteDetailPage({
       {/* Vacunas */}
       {vacunas && vacunas.length > 0 && (
         <Section title="💉 Vacunas" count={vacunas.length}>
-          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b">
                 <tr>
@@ -201,7 +201,7 @@ export default async function PacienteDetailPage({
       {/* Hemogramas */}
       {hemogramas && hemogramas.length > 0 && (
         <Section title="🩸 Hemogramas" count={hemogramas.length}>
-          <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b">
                 <tr>
