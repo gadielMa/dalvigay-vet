@@ -50,7 +50,7 @@ export default async function RayosPage({
               <span className="text-2xl">☢️</span>
               <div>
                 <div className="font-medium text-slate-800 text-sm">
-                  Paciente #{r.ray_idpaciente} · {r.ray_estudio?.trim() || "Rayos X"}
+                  <Link href={`/dashboard/pacientes/${r.ray_idpaciente}`} className="text-blue-700 hover:underline">Paciente #{r.ray_idpaciente}</Link> · {r.ray_estudio?.trim() || "Rayos X"}
                 </div>
                 <div className="text-xs text-slate-500">
                   {r.ray_fvisita?.trim() || "Sin fecha"} · Dr/a: {r.ray_dr?.trim() || "—"}

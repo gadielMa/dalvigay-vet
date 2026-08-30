@@ -8,9 +8,9 @@ const PAGE_SIZE = 50;
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dueño?: string; mascota?: string; vet?: string; page?: string }>;
+  searchParams: Promise<{ dueño?: string; mascota?: string; vet?: string; cliente_id?: string; page?: string }>;
 }) {
-  const { dueño = "", mascota = "", vet = "", page = "1" } = await searchParams;
+  const { dueño = "", mascota = "", vet = "", cliente_id = "", page = "1" } = await searchParams;
   const supabase = createAdminClient();
   const current = Math.max(1, parseInt(page));
   const from = (current - 1) * PAGE_SIZE;
@@ -66,6 +66,7 @@ export default async function ClientesPage({
   if (dueño) {
     query = query.or(`cli_apellido.ilike.%${dueño}%,cli_nombre.ilike.%${dueño}%`);
   }
+  if (cliente_id && Number.isInteger(Number(cliente_id))) query = query.eq("cli_id", Number(cliente_id));
   if (idsFinales !== null) {
     if (idsFinales.length === 0) {
       query = query.eq("cli_id", -1); // sin resultados
@@ -78,7 +79,7 @@ export default async function ClientesPage({
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginaHref = (p: number) =>
-    `?dueño=${dueño}&mascota=${mascota}&vet=${vet}&page=${p}`;
+    `?dueño=${dueño}&mascota=${mascota}&vet=${vet}&cliente_id=${cliente_id}&page=${p}`;
 
   return (
     <div>

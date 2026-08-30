@@ -127,7 +127,7 @@ export default async function PacientesPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Sexo</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Nacimiento</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Microchip</th>
-              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Cliente ID</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Cliente</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -145,7 +145,7 @@ export default async function PacientesPage({
                 </td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{p.pac_fecha_nac?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs font-mono">{p.pac_microchip?.trim() || "—"}</td>
-                <td className="px-4 py-2.5 text-slate-400 text-xs">{p.pac_cliente}</td>
+                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/clientes?cliente_id=${p.pac_cliente}`} className="text-blue-700 hover:underline">Ver dueño #{p.pac_cliente}</Link></td>
               </tr>
             ))}
             {(!pacientes || pacientes.length === 0) && (

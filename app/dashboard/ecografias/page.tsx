@@ -50,7 +50,7 @@ export default async function EcografiasPage({
               <span className="text-2xl">🔬</span>
               <div className="flex-1">
                 <div className="font-medium text-slate-800 text-sm">
-                  Paciente #{e.eco_idpaciente} · {e.eco_estudio?.trim() || "Ecografía"}
+                  <Link href={`/dashboard/pacientes/${e.eco_idpaciente}`} className="text-blue-700 hover:underline">Paciente #{e.eco_idpaciente}</Link> · {e.eco_estudio?.trim() || "Ecografía"}
                 </div>
                 <div className="text-xs text-slate-500">
                   {e.eco_fecha?.trim() || "Sin fecha"} · Dr/a: {e.eco_dr?.trim() || "—"}

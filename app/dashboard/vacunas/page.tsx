@@ -67,7 +67,7 @@ export default async function VacunasPage({
           <tbody className="divide-y divide-slate-100">
             {vacunas?.map((v) => (
               <tr key={v.vac_id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-2.5 text-slate-600 text-xs">#{v.vac_idpaciente}</td>
+                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="text-blue-700 hover:underline">🐾 #{v.vac_idpaciente}</Link></td>
                 <td className="px-4 py-2.5 text-lg">{ESPECIE[v.vac_pac_raz_esp?.trim()] ?? "🐾"}</td>
                 <td className="px-4 py-2.5 font-medium text-slate-800">{v.vac_marca?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-600">{v.vac_clase?.trim() || "—"}</td>
