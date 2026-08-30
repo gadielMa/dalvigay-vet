@@ -1,0 +1,15 @@
+const CACHE = "dalvigay-v1";
+const SHELL = ["/", "/login", "/manifest.webmanifest"];
+self.addEventListener("install", (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL))); self.skipWaiting(); });
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "GET" || !event.request.url.startsWith(self.location.origin)) return;
+  const url = new URL(event.request.url);
+  const publicAsset = url.pathname.startsWith("/_next/static/") || url.pathname === "/manifest.webmanifest" || url.pathname === "/icon.svg";
+  if (!publicAsset) return;
+  event.respondWith(fetch(event.request).then((response) => {
+    const copy = response.clone();
+    caches.open(CACHE).then((cache) => cache.put(event.request, copy));
+    return response;
+  }).catch(() => caches.match(event.request)));
+});

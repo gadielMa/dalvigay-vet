@@ -128,4 +128,10 @@
   html {
     @apply font-sans;
   }
+  button, input, select, textarea { touch-action: manipulation; }
+  @media (max-width: 640px) {
+    main table { font-size: 0.75rem; }
+    main th, main td { white-space: nowrap; }
+    main form { max-width: 100%; }
+  }
 }
