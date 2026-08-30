@@ -1,0 +1,8 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireSession } from "@/lib/operacion";
+import { createAdminClient } from "@/lib/supabase/admin";
+const text = (value: unknown) => String(value ?? "").trim();
+export async function POST(req: NextRequest) {
+  try { const session = await requireSession(); const body = await req.json(); const pac = Number(body.paciente_id); const cli = Number(body.cliente_id); const marca = text(body.marca); const clase = text(body.clase); const fecha = text(body.fecha); if (!Number.isInteger(pac) || !Number.isInteger(cli) || !marca || !clase || !fecha) return NextResponse.json({error:"Completá fecha, marca y clase"},{status:400}); const supabase=createAdminClient(); const {data:last}=await supabase.from("vacunas").select("vac_id").order("vac_id",{ascending:false}).limit(1).maybeSingle(); const precio=text(body.precio)||"0"; const cantidad=text(body.cantidad)||"1"; const {data,error}=await supabase.from("vacunas").insert({vac_id:Number(last?.vac_id??0)+1,vac_idpaciente:String(pac),vac_idcliente:String(cli),vac_dr:text(body.dr)||session.nombre,vac_fvisita:fecha,vac_fvisita_seg:"",vac_fproxima:text(body.proxima),vac_fproxima_seg:"",vac_resaltado:"0",vac_incluir:"1",vac_marca:marca,vac_clase:clase,vac_precio:precio,vac_cant:cantidad,vac_tot:String(Number(precio)*Number(cantidad)||0),vac_facturar:"0",vac_nserie:text(body.serie),vac_pac_raz_esp:text(body.especie),vac_volvio:0}).select().single(); if(error)throw error; return NextResponse.json(data,{status:201}); }
+  catch(error){return NextResponse.json({error:error instanceof Error?error.message:"No se pudo guardar la vacuna"},{status:500});}
+}
