@@ -3,10 +3,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dalvigay-vet-secret-change-in-prod",
-);
 const COOKIE = "dv_session";
+
+function authSecret() {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) {
+    throw new Error("Falta configurar AUTH_SECRET");
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export type SessionUser = {
   id: number;
@@ -54,7 +59,7 @@ export async function login(
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime("12h")
-    .sign(SECRET);
+    .sign(authSecret());
 
   const jar = await cookies();
   jar.set(COOKIE, token, {
@@ -78,7 +83,7 @@ export async function getSession(): Promise<SessionUser | null> {
   const token = jar.get(COOKIE)?.value;
   if (!token) return null;
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, authSecret());
     return payload as unknown as SessionUser;
   } catch {
     return null;

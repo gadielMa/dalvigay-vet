@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.AUTH_SECRET ?? "dalvigay-vet-secret-change-in-prod",
-);
+function authSecret() {
+  const secret = process.env.AUTH_SECRET;
+  if (!secret) throw new Error("Falta configurar AUTH_SECRET");
+  return new TextEncoder().encode(secret);
+}
 
 const PUBLIC_PREFIXES = ["/login", "/api/auth", "/_next", "/favicon.ico"];
 
@@ -18,7 +20,7 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
   try {
-    await jwtVerify(token, SECRET);
+    await jwtVerify(token, authSecret());
     return NextResponse.next();
   } catch {
     return NextResponse.redirect(new URL("/login", req.url));
