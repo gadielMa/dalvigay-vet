@@ -9,14 +9,14 @@ const ESPECIE: Record<string, string> = { C: "🐶", F: "🐱", AVE: "🐦" };
 export default async function PacientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mascota?: string; dueño?: string; vet?: string; page?: string }>;
+  searchParams: Promise<{ mascota?: string; dueño?: string; vet?: string; cliente_id?: string; page?: string }>;
 }) {
-  const { mascota = "", dueño = "", vet = "", page = "1" } = await searchParams;
+  const { mascota = "", dueño = "", vet = "", cliente_id = "", page = "1" } = await searchParams;
   const supabase = createAdminClient();
   const current = Math.max(1, parseInt(page));
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const hayFiltro = mascota || dueño || vet;
+  const hayFiltro = mascota || dueño || vet || cliente_id;
 
   // IDs de pacientes por dueño
   let idsPorDueño: number[] | null = null;
@@ -68,6 +68,8 @@ export default async function PacientesPage({
     .order("pac_nombre")
     .range(from, to);
 
+  if (cliente_id && Number.isInteger(Number(cliente_id))) query = query.eq("pac_cliente", Number(cliente_id));
+
   if (mascota) {
     query = query.ilike("pac_nombre", `%${mascota}%`);
   }
@@ -83,13 +85,13 @@ export default async function PacientesPage({
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginaHref = (p: number) =>
-    `?mascota=${mascota}&dueño=${dueño}&vet=${vet}&page=${p}`;
+    `?mascota=${mascota}&dueño=${dueño}&vet=${vet}&cliente_id=${cliente_id}&page=${p}`;
 
   return (
     <div>
       <div className="mb-4">
         <h1 className="text-xl font-semibold text-slate-800">Pacientes</h1>
-        <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros</p>
+        <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros{cliente_id ? " · mascotas del cliente seleccionado" : ""}</p>
       </div>
 
       <form method="GET" className="mb-4 grid grid-cols-3 gap-2 max-w-2xl">

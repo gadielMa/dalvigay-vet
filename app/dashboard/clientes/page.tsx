@@ -120,6 +120,7 @@ export default async function ClientesPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Celular</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Email</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Teléfono</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Mascotas</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -133,11 +134,12 @@ export default async function ClientesPage({
                   {c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "—"}
                 </td>
                 <td className="px-4 py-2.5 text-slate-600">{c.cli_tel1?.trim() || "—"}</td>
+                <td className="px-4 py-2.5"><Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="text-sm text-blue-700 hover:underline">🐾 Ver mascotas</Link></td>
               </tr>
             ))}
             {(!clientes || clientes.length === 0) && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
                   Sin resultados
                 </td>
               </tr>
