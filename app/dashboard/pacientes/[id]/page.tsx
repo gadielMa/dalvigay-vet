@@ -146,6 +146,7 @@ export default async function PacienteDetailPage({
               </div>
             ))}
           </div>
+          <details className="mt-3 text-xs text-blue-700"><summary className="cursor-pointer">Ver todos los campos de las consultas históricas</summary><div className="mt-3"><RegistrosCompletos registros={hc} fecha="hcr_fecha_hc" titulo="hcr_titulo" /></div></details>
         </Section>
       )}
 
@@ -180,6 +181,7 @@ export default async function PacienteDetailPage({
               </tbody>
             </table>
           </div>
+          <details className="mt-3 text-xs text-blue-700"><summary className="cursor-pointer">Ver número de serie, importes y todos los datos de vacunas</summary><div className="mt-3"><RegistrosCompletos registros={vacunas} fecha="vac_fvisita" titulo="vac_marca" /></div></details>
         </Section>
       )}
 
@@ -198,6 +200,7 @@ export default async function PacienteDetailPage({
               </div>
             ))}
           </div>
+          <details className="mt-3 text-xs text-blue-700"><summary className="cursor-pointer">Ver datos completos de las ecografías</summary><div className="mt-3"><RegistrosCompletos registros={ecografias} fecha="eco_fecha" titulo="eco_estudio" /></div></details>
         </Section>
       )}
 
@@ -216,6 +219,7 @@ export default async function PacienteDetailPage({
               </div>
             ))}
           </div>
+          <details className="mt-3 text-xs text-blue-700"><summary className="cursor-pointer">Ver datos completos de Rayos X</summary><div className="mt-3"><RegistrosCompletos registros={rayos} fecha="ray_fvisita" titulo="ray_estudio" /></div></details>
         </Section>
       )}
 
@@ -248,6 +252,7 @@ export default async function PacienteDetailPage({
               </tbody>
             </table>
           </div>
+          <details className="mt-3 text-xs text-blue-700"><summary className="cursor-pointer">Ver hemogramas completos y observaciones</summary><div className="mt-3"><RegistrosCompletos registros={hemogramas} fecha="hem_fvisita" titulo="hem_dr" /></div></details>
         </Section>
       )}
 
