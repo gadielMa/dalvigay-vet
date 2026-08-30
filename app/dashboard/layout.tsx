@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LogoutButton from "./LogoutButton";
+import { MobileNav } from "./MobileNav";
 
 export default async function DashboardLayout({
   children,
@@ -27,9 +28,10 @@ export default async function DashboardLayout({
   ];
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 md:flex">
+      <MobileNav items={nav} />
       {/* Sidebar */}
-      <aside className="w-56 bg-white border-r flex flex-col shrink-0">
+      <aside className="hidden w-56 shrink-0 flex-col border-r bg-white md:flex">
         <div className="px-4 py-5 border-b">
           <div className="text-2xl font-bold text-slate-800 tracking-tight">🐾 Dalvigay</div>
           <div className="text-xs text-slate-500 mt-0.5">Veterinaria</div>
@@ -54,7 +56,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main */}
-      <main className="flex-1 p-6 overflow-auto">{children}</main>
+      <main className="min-w-0 flex-1 overflow-auto p-4 pt-20 sm:p-6 sm:pt-20 md:pt-6">{children}</main>
     </div>
   );
 }
