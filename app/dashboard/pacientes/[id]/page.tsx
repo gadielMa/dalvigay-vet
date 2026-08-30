@@ -165,6 +165,10 @@ export default async function PacienteDetailPage({
                   <th className="px-3 py-2 text-left text-slate-600">Marca</th>
                   <th className="px-3 py-2 text-left text-slate-600">Clase</th>
                   <th className="px-3 py-2 text-left text-slate-600">Próxima</th>
+                  <th className="px-3 py-2 text-left text-slate-600">Serie</th>
+                  <th className="px-3 py-2 text-left text-slate-600">Importe</th>
+                  <th className="px-3 py-2 text-left text-slate-600">Facturación</th>
+                  <th className="px-3 py-2 text-left text-slate-600">Estado</th>
                   <th className="px-3 py-2 text-left text-slate-600">Médico</th>
                 </tr>
               </thead>
@@ -179,6 +183,10 @@ export default async function PacienteDetailPage({
                         ? <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full">{v.vac_fproxima.trim()}</span>
                         : "—"}
                     </td>
+                    <td className="px-3 py-2 font-mono text-slate-600">{v.vac_nserie?.trim() || "—"}</td>
+                    <td className="px-3 py-2 text-slate-600">${Number(v.vac_tot || 0).toLocaleString("es-AR")} <span className="text-slate-400">({v.vac_cant || "0"} × ${v.vac_precio || "0"})</span></td>
+                    <td className="px-3 py-2">{v.vac_facturar === "1" ? <span className="text-green-700">A facturar</span> : "—"}</td>
+                    <td className="px-3 py-2">{v.vac_resaltado === "1" && <span className="mr-1 rounded bg-amber-100 px-1 text-amber-800">Destacada</span>}{v.vac_incluir === "1" ? <span className="text-green-700">Incluida</span> : <span className="text-slate-400">No incluida</span>}</td>
                     <td className="px-3 py-2 text-slate-500">{v.vac_dr?.trim() || "—"}</td>
                   </tr>
                 ))}

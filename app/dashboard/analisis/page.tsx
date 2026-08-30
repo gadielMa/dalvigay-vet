@@ -85,6 +85,7 @@ export default async function AnalisisPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Paciente</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Fecha</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Médico</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Detalle</th>
               {activeTab === "hemogramas" && <>
                 <th className="px-4 py-2.5 text-left font-medium text-slate-600">Leucocitos</th>
                 <th className="px-4 py-2.5 text-left font-medium text-slate-600">Hemoglobina</th>
@@ -108,7 +109,7 @@ export default async function AnalisisPage({
           <tbody className="divide-y divide-slate-100">
             {data?.map((row: Record<string, unknown>, i) => (
               <tr key={i} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-2.5 text-slate-600 text-xs">#{String(row[ID_MAP[activeTab]] ?? "")}</td>
+                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/pacientes/${String(row[ID_MAP[activeTab]] ?? "")}`} className="text-blue-700 hover:underline">🐾 #{String(row[ID_MAP[activeTab]] ?? "")}</Link></td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{String(row[DATE_MAP[activeTab]] ?? "").trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{String(row[DR_MAP[activeTab]] ?? "").trim() || "—"}</td>
                 {activeTab === "hemogramas" && <>
@@ -129,10 +130,11 @@ export default async function AnalisisPage({
                   <td className="px-4 py-2.5 text-xs">{String(row.qs_creatinina ?? "").trim() || "—"}</td>
                   <td className="px-4 py-2.5 text-xs">{String(row.qs_colesterol ?? "").trim() || "—"}</td>
                 </>}
+                <td className="px-4 py-2.5 text-xs"><details><summary className="cursor-pointer text-blue-700">Ver completo</summary><dl className="mt-2 grid min-w-72 gap-2 rounded border bg-white p-3 sm:grid-cols-2">{Object.entries(row).filter(([key,value]) => !/(_id|idpaciente)$/i.test(key) && String(value ?? "").trim() && String(value).trim() !== "0").map(([key,value])=><div key={key}><dt className="text-[10px] uppercase text-slate-500">{label(key)}</dt><dd className="break-words text-slate-800">{String(value).trim()}</dd></div>)}</dl></details></td>
               </tr>
             ))}
             {(!data || data.length === 0) && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
             )}
           </tbody>
         </table>
@@ -148,3 +150,5 @@ export default async function AnalisisPage({
     </div>
   );
 }
+
+function label(key: string) { return key.replace(/^(hem|ori|qs)_/i, "").replaceAll("_", " ").replace(/\b\w/g, char => char.toUpperCase()); }

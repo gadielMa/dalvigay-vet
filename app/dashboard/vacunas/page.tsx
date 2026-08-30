@@ -19,7 +19,7 @@ export default async function VacunasPage({
   let query = supabase
     .from("vacunas")
     .select(
-      "vac_id, vac_idpaciente, vac_idcliente, vac_dr, vac_fvisita, vac_fproxima, vac_marca, vac_clase, vac_pac_raz_esp, vac_volvio",
+      "vac_id, vac_idpaciente, vac_idcliente, vac_dr, vac_fvisita, vac_fproxima, vac_fproxima_seg, vac_marca, vac_clase, vac_nserie, vac_precio, vac_cant, vac_tot, vac_facturar, vac_resaltado, vac_incluir, vac_pac_raz_esp, vac_volvio",
       { count: "exact" },
     )
     .order("vac_fvisita", { ascending: false })
@@ -60,6 +60,10 @@ export default async function VacunasPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Clase</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Fecha visita</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Próxima</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Serie</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Importe</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Factura</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Estado</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Médico</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Volvió</th>
             </tr>
@@ -79,6 +83,10 @@ export default async function VacunasPage({
                     </span>
                   ) : "—"}
                 </td>
+                <td className="px-4 py-2.5 font-mono text-xs text-slate-600">{v.vac_nserie?.trim() || "—"}</td>
+                <td className="px-4 py-2.5 text-xs text-slate-600">${Number(v.vac_tot || 0).toLocaleString("es-AR")} <span className="text-slate-400">({v.vac_cant || "0"} × ${v.vac_precio || "0"})</span></td>
+                <td className="px-4 py-2.5 text-xs">{v.vac_facturar === "1" ? <span className="text-green-700">A facturar</span> : <span className="text-slate-400">No</span>}</td>
+                <td className="px-4 py-2.5 text-xs">{v.vac_resaltado === "1" && <span className="mr-1 rounded bg-amber-100 px-1 text-amber-800">Destacada</span>}{v.vac_incluir === "1" ? <span className="text-green-700">Incluida</span> : <span className="text-slate-400">No incluida</span>}</td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{v.vac_dr?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-xs">
                   {v.vac_volvio === "1"
@@ -88,7 +96,7 @@ export default async function VacunasPage({
               </tr>
             ))}
             {(!vacunas || vacunas.length === 0) && (
-              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
+              <tr><td colSpan={12} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
             )}
           </tbody>
         </table>
