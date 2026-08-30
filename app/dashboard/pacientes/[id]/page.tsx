@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { NuevaConsulta } from "./NuevaConsulta";
 
 const ESPECIE: Record<string, string> = { C: "🐶 Canino", F: "🐱 Felino", AVE: "🐦 Ave" };
 
@@ -20,6 +21,7 @@ export default async function PacienteDetailPage({
     { data: ecografias },
     { data: rayos },
     { data: hemogramas },
+    { data: consultasNuevas },
   ] = await Promise.all([
     supabase.from("pacientes").select("*").eq("pac_id", id).single(),
     supabase.from("hcren").select("hcr_id,hcr_fecha_hc,hcr_titulo,hcr_peso,hcr_temp,hcr_detalle,hcr_dr").eq("hcr_hcc_idpaciente", id).order("hcr_fecha_hc", { ascending: false }),
@@ -27,6 +29,7 @@ export default async function PacienteDetailPage({
     supabase.from("ecografias").select("eco_id,eco_fecha,eco_estudio,eco_diag,eco_dr").eq("eco_idpaciente", id).order("eco_fecha", { ascending: false }),
     supabase.from("rayos").select("ray_id,ray_fvisita,ray_estudio,ray_diag,ray_dr").eq("ray_idpaciente", id).order("ray_fvisita", { ascending: false }),
     supabase.from("hemogramas").select("hem_id,hem_fvisita,hem_dr,hem_leucocitos,hem_hemoglobina,hem_hematocritos,hem_plaquetas").eq("hem_idpaciente", id).order("hem_fvisita", { ascending: false }),
+    supabase.from("consultas_nuevas").select("*").eq("paciente_id", id).order("fecha", { ascending: false }),
   ]);
 
   if (!paciente) notFound();
@@ -93,6 +96,8 @@ export default async function PacienteDetailPage({
       </div>
 
       {/* Historia Clínica */}
+      <NuevaConsulta pacienteId={Number(id)} />
+      {consultasNuevas && consultasNuevas.length > 0 && <Section title="🩺 Consultas nuevas" count={consultasNuevas.length}><div className="space-y-3">{consultasNuevas.map((r) => <div key={r.id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="text-xs font-medium text-slate-700">{r.fecha} · {r.titulo} · Dr/a: {r.profesional || "—"}</div><p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{r.detalle}</p>{r.tratamiento && <p className="mt-2 text-sm text-slate-600"><b>Indicaciones:</b> {r.tratamiento}</p>}</div>)}</div></Section>}
       {hc && hc.length > 0 && (
         <Section title="📋 Historia Clínica" count={hc.length}>
           <div className="space-y-3">

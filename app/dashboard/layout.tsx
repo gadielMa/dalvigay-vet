@@ -14,6 +14,7 @@ export default async function DashboardLayout({
 
   const nav = [
     { href: "/dashboard", label: "🏠 Inicio" },
+    { href: "/dashboard/turnos", label: "🗓️ Turnos" },
     { href: "/dashboard/clientes", label: "👥 Clientes" },
     { href: "/dashboard/pacientes", label: "🐾 Pacientes" },
     { href: "/dashboard/historia-clinica", label: "📋 Historia Clínica" },
