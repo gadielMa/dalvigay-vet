@@ -32,6 +32,11 @@ export default async function VacunasPage({
   }
 
   const { data: vacunas, count } = await query;
+  const patientIds = [...new Set((vacunas ?? []).map((v) => Number(v.vac_idpaciente)).filter(Number.isFinite))];
+  const { data: pacientes } = patientIds.length
+    ? await supabase.from("pacientes").select("pac_id, pac_nombre").in("pac_id", patientIds)
+    : { data: [] as { pac_id: number; pac_nombre?: string | null }[] };
+  const patientNames = Object.fromEntries((pacientes ?? []).map((p) => [String(p.pac_id), p.pac_nombre?.trim() || `Paciente #${p.pac_id}`]));
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
 
@@ -50,7 +55,17 @@ export default async function VacunasPage({
         {q && <Link href="/dashboard/vacunas"><Button variant="outline" size="sm">Limpiar</Button></Link>}
       </form>
 
-      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
+      <div className="space-y-2 md:hidden">
+        {vacunas?.map((v) => (
+          <Link key={v.vac_id} href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-semibold text-slate-800">{ESPECIE[v.vac_pac_raz_esp?.trim()] ?? "🐾"} {patientNames[String(v.vac_idpaciente)] || `Paciente #${v.vac_idpaciente}`}</p><p className="mt-1 truncate text-sm text-slate-600">{v.vac_marca?.trim() || "Vacuna"}{v.vac_clase?.trim() ? ` · ${v.vac_clase.trim()}` : ""}</p></div><span className="shrink-0 text-xs text-blue-700">Ver ficha →</span></div>
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Próxima: {v.vac_fproxima?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Total: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span></div>
+          </Link>
+        ))}
+        {(!vacunas || vacunas.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b">
             <tr>
@@ -71,7 +86,7 @@ export default async function VacunasPage({
           <tbody className="divide-y divide-slate-100">
             {vacunas?.map((v) => (
               <tr key={v.vac_id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="text-blue-700 hover:underline">🐾 #{v.vac_idpaciente}</Link></td>
+                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="text-blue-700 hover:underline">🐾 {patientNames[String(v.vac_idpaciente)] || `#${v.vac_idpaciente}`}</Link></td>
                 <td className="px-4 py-2.5 text-lg">{ESPECIE[v.vac_pac_raz_esp?.trim()] ?? "🐾"}</td>
                 <td className="px-4 py-2.5 font-medium text-slate-800">{v.vac_marca?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-600">{v.vac_clase?.trim() || "—"}</td>
