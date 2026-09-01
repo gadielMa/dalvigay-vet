@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NuevoCliente } from "./NuevoCliente";
 
 const PAGE_SIZE = 50;
 
@@ -110,6 +111,7 @@ export default async function ClientesPage({
           )}
         </div>
       </form>
+      <NuevoCliente />
 
       <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
         <table className="w-full text-sm">

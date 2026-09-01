@@ -1,0 +1,4 @@
+import { NextRequest, NextResponse } from "next/server";
+import { requireSession } from "@/lib/operacion";
+import { createAdminClient } from "@/lib/supabase/admin";
+export async function PATCH(req:NextRequest,ctx:RouteContext<"/api/clientes/[id]">){try{await requireSession();const{id}=await ctx.params;const b=await req.json();const allowed=["cli_nombre","cli_apellido","cli_razsoc","cli_cuit","cli_tel1","cli_celu","cli_mail","cli_domic","cli_entre","cli_loc","cli_cp","cli_prov","cli_pais","cli_repiva","cli_tipo"];const update:Record<string,string>={};for(const key of allowed)if(key in b)update[key]=String(b[key]??"").trim();const{error}=await createAdminClient().from("clientes").update(update).eq("cli_id",Number(id));if(error)throw error;return NextResponse.json({ok:true});}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"No se pudo actualizar"},{status:500});}}
