@@ -94,6 +94,10 @@ export default async function PacienteDetailPage({
               <Row label="Teléfono" value={cliente.cli_tel1?.trim()} />
               <Row label="Email" value={cliente.cli_mail?.trim() !== "0" ? cliente.cli_mail?.trim() : undefined} />
             </dl>
+            <div className="mt-4 flex flex-wrap gap-2 border-t pt-3">
+              <Link href={`/dashboard/clientes/${paciente.pac_cliente}`}><Button variant="outline" size="sm">Ver ficha del dueño</Button></Link>
+              {String(cliente.cli_celu || cliente.cli_tel1 || "").replace(/\D/g, "") && <a href={`https://wa.me/54${String(cliente.cli_celu || cliente.cli_tel1).replace(/\D/g, "").replace(/^0/, "").replace(/^15/, "")}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center rounded-md bg-emerald-600 px-3 text-xs font-medium text-white">WhatsApp</a>}
+            </div>
           </div>
         )}
       </div>
