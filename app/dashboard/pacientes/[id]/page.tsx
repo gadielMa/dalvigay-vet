@@ -118,6 +118,20 @@ export default async function PacienteDetailPage({
         ))}
       </div>
 
+      <Timeline events={[
+        ...eventos(hc ?? [], "📋", "Consulta", "hcr_fecha_hc", "hcr_titulo"),
+        ...eventos(consultasNuevas ?? [], "🩺", "Consulta nueva", "fecha", "titulo"),
+        ...eventos(vacunas ?? [], "💉", "Vacuna", "vac_fvisita", "vac_marca"),
+        ...eventos(ecografias ?? [], "🔬", "Ecografía", "eco_fecha", "eco_estudio"),
+        ...eventos(rayos ?? [], "☢️", "Rayos X", "ray_fvisita", "ray_estudio"),
+        ...eventos(hemogramas ?? [], "🩸", "Hemograma", "hem_fvisita", "hem_dr"),
+        ...eventos(orinas ?? [], "🧪", "Orina", "ori_fecha", "ori_dr"),
+        ...eventos(quimicas ?? [], "⚗️", "Química", "qs_fvisita", "qs_dr"),
+        ...eventos(ectoendos ?? [], "🪱", "Ecto / endo", "ee_fvisita", "ee_tipo"),
+        ...eventos(electros ?? [], "❤️", "Electrocardiograma", "ele_fecha", "ele_estudio"),
+        ...eventos(estudios ?? [], "🔎", "Estudio", "est_fvisita", "est_titulo"),
+      ]} />
+
       {/* Historia Clínica */}
       <PacienteActions paciente={paciente} clienteId={Number(paciente.pac_cliente)} />
       <ClinicalAdditions pacienteId={Number(id)} />
@@ -284,6 +298,11 @@ function RegistrosCompletos({ registros, fecha, titulo }: { registros: Record<st
 
 function texto(value: unknown) { const result = String(value ?? "").trim(); return result === "0" ? "" : result; }
 function etiqueta(key: string) { return key.replace(/^(ori|qs|ee|ele|est|mov|hem|vac|eco|ray)_/i, "").replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase()); }
+
+type Evento = { icono: string; tipo: string; fecha: string; detalle: string };
+function eventos(registros: Record<string, unknown>[], icono: string, tipo: string, campoFecha: string, campoDetalle: string): Evento[] { return registros.map(registro => ({ icono, tipo, fecha: texto(registro[campoFecha]) || "Sin fecha", detalle: texto(registro[campoDetalle]) || "Sin detalle" })); }
+function Timeline({ events }: { events: Evento[] }) { const ordered = events.sort((a,b) => fechaOrden(b.fecha) - fechaOrden(a.fecha)).slice(0,20); if(!ordered.length) return null; return <section className="mb-6"><h2 className="mb-3 text-sm font-semibold text-slate-700">🗓️ Cronología clínica reciente</h2><div className="space-y-2 border-l-2 border-slate-200 pl-4">{ordered.map((event,index)=><div key={`${event.tipo}-${event.fecha}-${index}`} className="relative rounded-lg border bg-white p-3 shadow-sm"><span className="absolute -left-7 top-3 rounded-full bg-slate-100 p-1 text-xs">{event.icono}</span><div className="text-xs font-medium text-slate-700">{event.fecha} · {event.tipo}</div><div className="mt-1 text-sm text-slate-600">{event.detalle}</div></div>)}</div></section>; }
+function fechaOrden(value: string) { const time = Date.parse(value); if (!Number.isNaN(time)) return time; const parts=value.match(/(\d{1,2})\D(\d{1,2})\D(\d{2,4})/); if(parts){const year=Number(parts[3].length===2?`20${parts[3]}`:parts[3]);return new Date(year,Number(parts[1])-1,Number(parts[2])).getTime();} return 0; }
 
 function Row({ label, value, mono }: { label: string; value?: React.ReactNode; mono?: boolean }) {
   if (!value || value === "0") return null;

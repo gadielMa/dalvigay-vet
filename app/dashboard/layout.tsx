@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import { MobileNav } from "./MobileNav";
+import { QuickActions } from "./QuickActions";
 
 export default async function DashboardLayout({
   children,
@@ -14,6 +15,7 @@ export default async function DashboardLayout({
 
   const nav = [
     { href: "/dashboard", label: "🏠 Inicio" },
+    { href: "/dashboard/buscar", label: "🔎 Buscar" },
     { href: "/dashboard/turnos", label: "🗓️ Turnos" },
     { href: "/dashboard/clientes", label: "👥 Clientes" },
     { href: "/dashboard/pacientes", label: "🐾 Pacientes" },
@@ -58,7 +60,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main */}
-      <main className="min-w-0 flex-1 overflow-auto p-4 sm:p-6">{children}</main>
+      <main className="min-w-0 flex-1 overflow-auto p-4 pb-24 sm:p-6 md:pb-6">{children}</main><QuickActions />
     </div>
   );
 }
