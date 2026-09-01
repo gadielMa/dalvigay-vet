@@ -94,7 +94,7 @@ export default async function PacientesPage({
         <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros{cliente_id ? " · mascotas del cliente seleccionado" : ""}</p>
       </div>
 
-      <form method="GET" className="mb-4 grid grid-cols-3 gap-2 max-w-2xl">
+      <form method="GET" className="mb-4 grid grid-cols-1 gap-2 max-w-2xl sm:grid-cols-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500">🐾 Mascota</label>
           <Input name="mascota" defaultValue={mascota} placeholder="Nombre de la mascota…" className="text-sm" />
@@ -107,7 +107,7 @@ export default async function PacientesPage({
           <label className="text-xs font-medium text-slate-500">🩺 Veterinario</label>
           <Input name="vet" defaultValue={vet} placeholder="Nombre del veterinario…" className="text-sm" />
         </div>
-        <div className="col-span-3 flex gap-2">
+        <div className="flex gap-2 sm:col-span-3">
           <Button type="submit" size="sm">Buscar</Button>
           {hayFiltro && (
             <Link href="/dashboard/pacientes">
@@ -117,7 +117,27 @@ export default async function PacientesPage({
         </div>
       </form>
 
-      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
+      <div className="space-y-2 md:hidden">
+        {pacientes?.map((p) => (
+          <Link key={p.pac_id} href={`/dashboard/pacientes/${p.pac_id}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-slate-800">{p.pac_nombre?.trim() || `Paciente #${p.pac_id}`}</p>
+                <p className="mt-1 text-sm text-slate-500">{ESPECIE[p.pac_raz_siglas?.trim()] ?? "🐾"} {p.pac_raz_nombre?.trim() || "Raza sin registrar"}</p>
+              </div>
+              <span className="shrink-0 text-xs text-blue-700">Ver ficha →</span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500">
+              <span>Sexo: {p.pac_sexo === "M" ? "Macho" : p.pac_sexo === "H" ? "Hembra" : p.pac_sexo?.trim() || "—"}</span>
+              <span className="truncate">Microchip: {p.pac_microchip?.trim() || "—"}</span>
+              <span className="col-span-2">Nacimiento: {p.pac_fecha_nac?.trim() || "—"}</span>
+            </div>
+          </Link>
+        ))}
+        {(!pacientes || pacientes.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b">
             <tr>

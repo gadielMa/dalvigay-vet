@@ -89,7 +89,7 @@ export default async function ClientesPage({
         <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros</p>
       </div>
 
-      <form method="GET" className="mb-4 grid grid-cols-3 gap-2 max-w-2xl">
+      <form method="GET" className="mb-4 grid grid-cols-1 gap-2 max-w-2xl sm:grid-cols-3">
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500">👤 Dueño</label>
           <Input name="dueño" defaultValue={dueño} placeholder="Nombre o apellido…" className="text-sm" />
@@ -102,7 +102,7 @@ export default async function ClientesPage({
           <label className="text-xs font-medium text-slate-500">🩺 Veterinario</label>
           <Input name="vet" defaultValue={vet} placeholder="Nombre del veterinario…" className="text-sm" />
         </div>
-        <div className="col-span-3 flex gap-2">
+        <div className="flex gap-2 sm:col-span-3">
           <Button type="submit" size="sm">Buscar</Button>
           {hayFiltro && (
             <Link href="/dashboard/clientes">
@@ -113,7 +113,23 @@ export default async function ClientesPage({
       </form>
       <NuevoCliente />
 
-      <div className="bg-white rounded-xl border overflow-x-auto shadow-sm">
+      <div className="space-y-2 md:hidden">
+        {clientes?.map((c) => (
+          <Link key={c.cli_id} href={`/dashboard/clientes/${c.cli_id}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-slate-800">{`${c.cli_apellido?.trim() ?? ""}, ${c.cli_nombre?.trim() ?? ""}`.replace(/^, /, "") || `Cliente #${c.cli_id}`}</p>
+                <p className="mt-1 truncate text-sm text-slate-500">{c.cli_celu?.trim() || c.cli_tel1?.trim() || "Sin teléfono registrado"}</p>
+              </div>
+              <span className="shrink-0 text-xs text-blue-700">Ver ficha →</span>
+            </div>
+            <p className="mt-3 truncate text-xs text-slate-500">{c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "Sin email registrado"}</p>
+          </Link>
+        ))}
+        {(!clientes || clientes.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b">
             <tr>
