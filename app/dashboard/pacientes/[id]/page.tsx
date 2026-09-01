@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NuevaConsulta } from "./NuevaConsulta";
 import { PacienteActions } from "./PacienteActions";
 import { ClinicalAdditions } from "./ClinicalAdditions";
+import { PrintPatientButton } from "./PrintPatientButton";
 
 const ESPECIE: Record<string, string> = { C: "🐶 Canino", F: "🐱 Felino", AVE: "🐦 Ave" };
 
@@ -56,13 +57,14 @@ export default async function PacienteDetailPage({
 
   return (
     <div className="max-w-4xl">
-      <div className="flex items-center gap-2 mb-5">
+      <div className="flex flex-wrap items-center gap-2 mb-5">
         <Link href="/dashboard/pacientes">
           <Button variant="outline" size="sm">← Volver</Button>
         </Link>
         <h1 className="text-xl font-semibold text-slate-800">
           {ESPECIE[paciente.pac_raz_siglas?.trim()] ?? "🐾"} {paciente.pac_nombre?.trim()}
         </h1>
+        <PrintPatientButton />
       </div>
 
       {/* Ficha */}
@@ -137,9 +139,7 @@ export default async function PacienteDetailPage({
       ]} />
 
       {/* Historia Clínica */}
-      <PacienteActions paciente={paciente} clienteId={Number(paciente.pac_cliente)} />
-      <ClinicalAdditions pacienteId={Number(id)} />
-      <NuevaConsulta pacienteId={Number(id)} />
+      <div data-print-hidden><PacienteActions paciente={paciente} clienteId={Number(paciente.pac_cliente)} /><ClinicalAdditions pacienteId={Number(id)} /><NuevaConsulta pacienteId={Number(id)} /></div>
       {consultasNuevas && consultasNuevas.length > 0 && <Section title="🩺 Consultas nuevas" count={consultasNuevas.length}><div className="space-y-3">{consultasNuevas.map((r) => <div key={r.id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="text-xs font-medium text-slate-700">{r.fecha} · {r.titulo} · Dr/a: {r.profesional || "—"}</div><p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{r.detalle}</p>{r.tratamiento && <p className="mt-2 text-sm text-slate-600"><b>Indicaciones:</b> {r.tratamiento}</p>}{Array.isArray(r.adjuntos) && r.adjuntos.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{r.adjuntos.map((file: { path?: string; nombre?: string }, index: number) => file.path ? <a key={file.path} href={`/api/archivos?path=${encodeURIComponent(file.path)}`} target="_blank" className="rounded-md border px-2 py-1 text-xs text-blue-700 hover:bg-slate-50">📎 {file.nombre || `Adjunto ${index + 1}`}</a> : null)}</div>}</div>)}</div></Section>}
       {hc && hc.length > 0 && (
         <Section title="📋 Historia Clínica" count={hc.length}>
