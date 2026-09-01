@@ -16,6 +16,7 @@ export default async function PacienteDetailPage({
 }) {
   const { id } = await params;
   const supabase = createAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
 
   const [
     { data: paciente },
@@ -31,6 +32,7 @@ export default async function PacienteDetailPage({
     { data: electros },
     { data: estudios },
     { data: movimientos },
+    { data: turnos },
   ] = await Promise.all([
     supabase.from("pacientes").select("*").eq("pac_id", id).single(),
     supabase.from("hcren").select("*").eq("hcr_hcc_idpaciente", id).order("hcr_fecha_hc", { ascending: false }),
@@ -45,6 +47,7 @@ export default async function PacienteDetailPage({
     supabase.from("electrocardio").select("*").eq("ele_idpaciente", id).order("ele_fecha", { ascending: false }),
     supabase.from("estudios").select("*").eq("est_idpaciente", id).order("est_fvisita", { ascending: false }),
     supabase.from("movimientos").select("*").eq("mov_idpaciente", id).order("mov_fecha", { ascending: false }).limit(100),
+    supabase.from("turnos").select("id,fecha,hora,motivo,estado,notas").eq("paciente_id", Number(id)).gte("fecha", today).neq("estado", "cancelado").order("fecha").order("hora").limit(20),
   ]);
 
   if (!paciente) notFound();
@@ -115,6 +118,7 @@ export default async function PacienteDetailPage({
           { icon: "🧪", count: orinas?.length ?? 0, label: "orinas" },
           { icon: "⚗️", count: quimicas?.length ?? 0, label: "químicas" },
           { icon: "🪱", count: ectoendos?.length ?? 0, label: "ecto/endo" },
+          { icon: "🗓️", count: turnos?.length ?? 0, label: "turnos próximos" },
         ].map((s) => (
           <div key={s.label} className="bg-white border rounded-lg px-4 py-2 flex items-center gap-2 text-sm shadow-sm">
             <span>{s.icon}</span>
@@ -136,9 +140,11 @@ export default async function PacienteDetailPage({
         ...eventos(ectoendos ?? [], "🪱", "Ecto / endo", "ee_fvisita", "ee_tipo"),
         ...eventos(electros ?? [], "❤️", "Electrocardiograma", "ele_fecha", "ele_estudio"),
         ...eventos(estudios ?? [], "🔎", "Estudio", "est_fvisita", "est_titulo"),
+        ...eventos(turnos ?? [], "🗓️", "Turno", "fecha", "motivo"),
       ]} />
 
       {/* Historia Clínica */}
+      {turnos && turnos.length > 0 && <Section title="🗓️ Próximos turnos" count={turnos.length}><div className="space-y-2">{turnos.map((turno) => <div key={turno.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-white p-3 shadow-sm"><div><p className="text-sm font-medium text-slate-800">{turno.fecha} · {String(turno.hora).slice(0, 5)} · {turno.motivo}</p>{turno.notas && <p className="mt-1 text-xs text-slate-500">{turno.notas}</p>}</div><span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-700">{turno.estado}</span></div>)}</div><Link href="/dashboard/turnos" data-print-hidden className="mt-3 inline-block text-xs text-blue-700 hover:underline">Abrir agenda completa →</Link></Section>}
       <div data-print-hidden><PacienteActions paciente={paciente} clienteId={Number(paciente.pac_cliente)} /><ClinicalAdditions pacienteId={Number(id)} /><NuevaConsulta pacienteId={Number(id)} /></div>
       {consultasNuevas && consultasNuevas.length > 0 && <Section title="🩺 Consultas nuevas" count={consultasNuevas.length}><div className="space-y-3">{consultasNuevas.map((r) => <div key={r.id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="text-xs font-medium text-slate-700">{r.fecha} · {r.titulo} · Dr/a: {r.profesional || "—"}</div><p className="mt-2 whitespace-pre-wrap text-sm text-slate-600">{r.detalle}</p>{r.tratamiento && <p className="mt-2 text-sm text-slate-600"><b>Indicaciones:</b> {r.tratamiento}</p>}{Array.isArray(r.adjuntos) && r.adjuntos.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{r.adjuntos.map((file: { path?: string; nombre?: string }, index: number) => file.path ? <a key={file.path} href={`/api/archivos?path=${encodeURIComponent(file.path)}`} target="_blank" className="rounded-md border px-2 py-1 text-xs text-blue-700 hover:bg-slate-50">📎 {file.nombre || `Adjunto ${index + 1}`}</a> : null)}</div>}</div>)}</div></Section>}
       {hc && hc.length > 0 && (
