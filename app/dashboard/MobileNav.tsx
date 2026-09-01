@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PwaInstallButton } from "./PwaInstallButton";
 
 export type NavItem = { href: string; label: string };
 
@@ -11,9 +12,9 @@ export function MobileNav({ items }: { items: NavItem[] }) {
     <>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-3 md:hidden">
         <div className="text-lg font-bold tracking-tight text-slate-800">🐾 Dalvigay</div>
-        <button type="button" onClick={() => setOpen(!open)} aria-label="Abrir menú" className="rounded-md border px-3 py-1.5 text-xl leading-none text-slate-700">
+        <div className="flex items-center gap-2"><PwaInstallButton/><button type="button" onClick={() => setOpen(!open)} aria-label="Abrir menú" className="rounded-md border px-3 py-1.5 text-xl leading-none text-slate-700">
           {open ? "×" : "☰"}
-        </button>
+        </button></div>
       </header>
       {open && <div className="fixed inset-0 z-40 bg-slate-900/30 md:hidden" onClick={() => setOpen(false)} />}
       <nav className={`fixed inset-y-0 right-0 z-50 w-[min(85vw,18rem)] transform bg-white p-4 shadow-xl transition-transform md:hidden ${open ? "translate-x-0" : "translate-x-full"}`}>
