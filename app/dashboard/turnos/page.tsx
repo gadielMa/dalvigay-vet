@@ -8,5 +8,5 @@ export default async function TurnosPage() {
     supabase.from("clientes").select("cli_id,cli_nombre,cli_apellido").order("cli_apellido").limit(10000),
     supabase.from("pacientes").select("pac_id,pac_nombre,pac_cliente").order("pac_nombre").limit(10000),
   ]);
-  return <TurnosPanel turnos={turnos ?? []} clientes={clientes ?? []} pacientes={pacientes ?? []} />;
+  return <TurnosPanel turnos={turnos ?? []} clientes={clientes ?? []} pacientes={pacientes ?? []} today={new Date().toISOString().slice(0, 10)} />;
 }
