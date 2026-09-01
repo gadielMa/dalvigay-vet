@@ -1,44 +1,8 @@
 "use client";
-
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type Producto = { id: number; nombre: string; categoria: string; stock: number; stock_minimo: number; precio: number | string; proveedor?: string | null; vencimiento?: string | null };
-
-export function InventarioPanel({ productos }: { productos: Producto[] }) {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); setError("");
-    const data = Object.fromEntries(new FormData(event.currentTarget));
-    const res = await fetch("/api/inventario", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-    if (!res.ok) return setError((await res.json()).error ?? "No se pudo guardar");
-    event.currentTarget.reset(); router.refresh();
-  };
-  const remove = async (id: number) => {
-    if (!confirm("¿Eliminar este producto? Las ventas existentes no se eliminan.")) return;
-    const res = await fetch(`/api/inventario/${id}`, { method: "DELETE" });
-    if (!res.ok) return setError((await res.json()).error ?? "No se pudo eliminar");
-    router.refresh();
-  };
-  return <div className="space-y-5">
-    <form onSubmit={submit} className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white border rounded-xl p-4">
-      <Input name="nombre" placeholder="Producto" required />
-      <Input name="categoria" placeholder="Categoría" required />
-      <Input name="stock" type="number" min="0" defaultValue="0" required />
-      <Input name="stock_minimo" type="number" min="0" defaultValue="0" required />
-      <Input name="precio" type="number" min="0" step="0.01" defaultValue="0" required />
-      <Input name="proveedor" placeholder="Proveedor" />
-      <Input name="vencimiento" type="date" />
-      <Button type="submit">Agregar producto</Button>
-      {error && <p className="col-span-full text-sm text-red-600">{error}</p>}
-    </form>
-    <div className="bg-white border rounded-xl overflow-hidden">
-      <table className="w-full text-sm"><thead className="bg-slate-50 text-left text-slate-600"><tr><th className="p-3">Producto</th><th>Stock</th><th>Mínimo</th><th>Precio</th><th></th></tr></thead>
-      <tbody>{productos.map((p) => <tr key={p.id} className="border-t"><td className="p-3"><b>{p.nombre}</b><span className="block text-xs text-slate-500">{p.categoria}{p.proveedor ? ` · ${p.proveedor}` : ""}</span></td><td className={p.stock <= p.stock_minimo ? "text-amber-700 font-semibold" : ""}>{p.stock}</td><td>{p.stock_minimo}</td><td>${Number(p.precio).toLocaleString("es-AR", { minimumFractionDigits: 2 })}</td><td><Button variant="destructive" size="xs" onClick={() => remove(p.id)}>Eliminar</Button></td></tr>)}</tbody></table>
-      {productos.length === 0 && <p className="p-8 text-center text-slate-400">Todavía no hay productos.</p>}
-    </div>
-  </div>;
-}
+type Producto={id:number;nombre:string;categoria:string;stock:number;stock_minimo:number;precio:number|string;proveedor?:string|null;vencimiento?:string|null;codigo_barras?:string|null};
+function ProductForm({producto,onSubmit}:{producto?:Producto;onSubmit:(data:Record<string,FormDataEntryValue>)=>void}){return <form onSubmit={e=>{e.preventDefault();onSubmit(Object.fromEntries(new FormData(e.currentTarget)));}} className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4"><Input name="nombre" defaultValue={producto?.nombre} placeholder="Producto" required/><Input name="categoria" defaultValue={producto?.categoria} placeholder="Categoría" required/><Input name="stock" type="number" min="0" defaultValue={producto?.stock??0} required/><Input name="stock_minimo" type="number" min="0" defaultValue={producto?.stock_minimo??0} required/><Input name="precio" type="number" min="0" step="0.01" defaultValue={producto?.precio??0} required/><Input name="proveedor" defaultValue={producto?.proveedor??""} placeholder="Proveedor"/><Input name="vencimiento" type="date" defaultValue={producto?.vencimiento??""}/><Input name="codigo_barras" defaultValue={producto?.codigo_barras??""} placeholder="Código de barras"/><Button type="submit">{producto?"Guardar cambios":"Agregar producto"}</Button></form>}
+export function InventarioPanel({productos}:{productos:Producto[]}){const router=useRouter();const[error,setError]=useState("");const save=async(data:Record<string,FormDataEntryValue>,id?:number)=>{setError("");const r=await fetch(id?`/api/inventario/${id}`:"/api/inventario",{method:id?"PATCH":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(data)});if(!r.ok)return setError((await r.json()).error??"No se pudo guardar");router.refresh()};const remove=async(id:number)=>{if(!confirm("¿Eliminar este producto? Las ventas existentes no se eliminan."))return;const r=await fetch(`/api/inventario/${id}`,{method:"DELETE"});if(!r.ok)return setError((await r.json()).error??"No se pudo eliminar");router.refresh()};const low=productos.filter(p=>p.stock<=p.stock_minimo).length;return <div className="space-y-5"><div className="rounded-xl border bg-amber-50 p-3 text-sm text-amber-800">{low?`⚠️ ${low} producto${low===1?"":"s"} con stock bajo.`:"✓ No hay productos bajo el stock mínimo."}</div><details className="rounded-xl border bg-white p-4"><summary className="cursor-pointer font-medium text-slate-700">+ Agregar producto</summary><ProductForm onSubmit={save}/></details><div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-sm"><thead className="bg-slate-50 text-left text-slate-600"><tr><th className="p-3">Producto</th><th>Stock</th><th>Mínimo</th><th>Precio</th><th>Vencimiento</th><th/></tr></thead><tbody>{productos.map(p=><tr key={p.id} className={`border-t ${p.stock<=p.stock_minimo?"bg-amber-50/50":""}`}><td className="p-3"><b>{p.nombre}</b><span className="block text-xs text-slate-500">{p.categoria}{p.proveedor?` · ${p.proveedor}`:""}</span></td><td className={p.stock<=p.stock_minimo?"font-semibold text-amber-700":""}>{p.stock}</td><td>{p.stock_minimo}</td><td>${Number(p.precio).toLocaleString("es-AR",{minimumFractionDigits:2})}</td><td>{p.vencimiento||"—"}</td><td className="p-2"><details><summary className="cursor-pointer text-xs text-blue-700">Editar</summary><div className="absolute right-4 z-10 mt-2 w-[min(92vw,720px)] rounded-xl border bg-white p-4 shadow-xl"><ProductForm producto={p} onSubmit={data=>save(data,p.id)}/><Button className="mt-2" size="xs" variant="destructive" type="button" onClick={()=>remove(p.id)}>Eliminar producto</Button></div></details></td></tr>)}</tbody></table>{!productos.length&&<p className="p-8 text-center text-slate-400">Todavía no hay productos.</p>}</div>{error&&<p className="text-sm text-red-600">{error}</p>}</div>}
