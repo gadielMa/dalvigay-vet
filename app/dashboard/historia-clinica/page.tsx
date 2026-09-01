@@ -32,6 +32,11 @@ export default async function HistoriaClinicaPage({
   }
 
   const { data: registros, count } = await query;
+  const patientIds = [...new Set((registros ?? []).map((record) => Number(record.hcr_hcc_idpaciente)).filter(Number.isFinite))];
+  const { data: pacientes } = patientIds.length
+    ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas").in("pac_id", patientIds)
+    : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null }[] };
+  const patientNames = Object.fromEntries((pacientes ?? []).map((patient) => [String(patient.pac_id), `${patient.pac_raz_siglas?.trim() === "F" ? "🐱" : "🐾"} ${patient.pac_nombre?.trim() || `Paciente #${patient.pac_id}`}`]));
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
 
@@ -68,7 +73,7 @@ export default async function HistoriaClinicaPage({
                 <span className="text-2xl">📋</span>
                 <div>
                   <div className="font-medium text-slate-800 text-sm">
-                    Paciente #{r.hcr_hcc_idpaciente}
+                    <Link href={`/dashboard/pacientes/${r.hcr_hcc_idpaciente}`} className="hover:text-blue-700 hover:underline">{patientNames[String(r.hcr_hcc_idpaciente)] || `Paciente #${r.hcr_hcc_idpaciente}`}</Link>
                     {r.hcr_titulo?.trim() ? ` · ${r.hcr_titulo.trim()}` : ""}
                   </div>
                   <div className="text-xs text-slate-500">
