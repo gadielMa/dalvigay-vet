@@ -1,29 +1,7 @@
 "use client";
-
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-
-type Producto = { id: number; nombre: string; stock: number; precio: number | string };
-
-export function VentasPanel({ productos }: { productos: Producto[] }) {
-  const router = useRouter(); const [error, setError] = useState("");
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); setError("");
-    const form = new FormData(event.currentTarget);
-    const producto_id = Number(form.get("producto_id")); const cantidad = Number(form.get("cantidad"));
-    const res = await fetch("/api/ventas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ items: [{ producto_id, cantidad }], notas: form.get("notas") }) });
-    if (!res.ok) return setError((await res.json()).error ?? "No se pudo registrar la venta");
-    event.currentTarget.reset(); router.refresh();
-  };
-  return <form onSubmit={submit} className="grid md:grid-cols-4 gap-2 bg-white border rounded-xl p-4">
-    <select name="producto_id" className="h-8 rounded-lg border border-input px-2.5 text-sm" required defaultValue="">
-      <option value="" disabled>Elegí un producto</option>{productos.filter((p) => p.stock > 0).map((p) => <option key={p.id} value={p.id}>{p.nombre} · stock {p.stock} · ${Number(p.precio).toLocaleString("es-AR")}</option>)}
-    </select>
-    <Input name="cantidad" type="number" min="1" defaultValue="1" required />
-    <Input name="notas" placeholder="Notas (opcional)" />
-    <Button type="submit">Registrar venta</Button>
-    {error && <p className="md:col-span-4 text-sm text-red-600">{error}</p>}
-  </form>;
-}
+type Producto={id:number;nombre:string;stock:number;precio:number|string};type Item={producto_id:number;cantidad:number};
+export function VentasPanel({productos}:{productos:Producto[]}){const router=useRouter();const[items,setItems]=useState<Item[]>([]);const[productId,setProductId]=useState("");const[quantity,setQuantity]=useState(1);const[notas,setNotas]=useState("");const[error,setError]=useState("");const[busy,setBusy]=useState(false);const enriched=useMemo(()=>items.map(i=>({...i,producto:productos.find(p=>p.id===i.producto_id)!})).filter(i=>i.producto),[items,productos]);const total=enriched.reduce((sum,i)=>sum+Number(i.producto.precio)*i.cantidad,0);const add=()=>{setError("");const id=Number(productId);const p=productos.find(x=>x.id===id);if(!p||quantity<1)return;const existing=items.find(x=>x.producto_id===id);const current=existing?.cantidad??0;if(current+quantity>p.stock)return setError(`Stock insuficiente para ${p.nombre}`);setItems(existing?items.map(x=>x.producto_id===id?{...x,cantidad:x.cantidad+quantity}:x):[...items,{producto_id:id,cantidad:quantity}]);setProductId("");setQuantity(1)};const remove=(id:number)=>setItems(items.filter(x=>x.producto_id!==id));const submit=async()=>{setError("");if(!items.length)return setError("Agregá al menos un producto");setBusy(true);const r=await fetch("/api/ventas",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({items,notas})});setBusy(false);if(!r.ok)return setError((await r.json()).error??"No se pudo registrar la venta");setItems([]);setNotas("");router.refresh()};return <div className="space-y-3 rounded-xl border bg-white p-4"><div className="grid gap-2 sm:grid-cols-[1fr_110px_auto]"><select value={productId} onChange={e=>setProductId(e.target.value)} className="h-9 min-w-0 rounded-lg border px-2 text-sm"><option value="">Elegí un producto</option>{productos.filter(p=>p.stock>0).map(p=><option key={p.id} value={p.id}>{p.nombre} · stock {p.stock} · ${Number(p.precio).toLocaleString("es-AR")}</option>)}</select><Input value={quantity} onChange={e=>setQuantity(Number(e.target.value))} type="number" min="1"/><Button type="button" onClick={add}>Agregar</Button></div>{enriched.length>0&&<div className="overflow-x-auto"><table className="w-full text-sm"><thead className="border-b text-left text-slate-500"><tr><th className="p-2">Producto</th><th className="p-2">Cant.</th><th className="p-2">Precio</th><th className="p-2">Subtotal</th><th/></tr></thead><tbody>{enriched.map(i=><tr key={i.producto_id} className="border-b"><td className="p-2 font-medium">{i.producto.nombre}</td><td className="p-2">{i.cantidad}</td><td className="p-2">${Number(i.producto.precio).toLocaleString("es-AR")}</td><td className="p-2">${(Number(i.producto.precio)*i.cantidad).toLocaleString("es-AR")}</td><td className="p-2"><Button type="button" size="xs" variant="destructive" onClick={()=>remove(i.producto_id)}>Quitar</Button></td></tr>)}</tbody></table></div>}<div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-center"><Input value={notas} onChange={e=>setNotas(e.target.value)} placeholder="Notas (opcional)"/><div className="text-right"><div className="text-sm text-slate-500">Total</div><div className="text-xl font-bold text-slate-800">${total.toLocaleString("es-AR",{minimumFractionDigits:2})}</div></div></div><Button type="button" onClick={submit} disabled={busy||!items.length}>{busy?"Registrando…":"Confirmar venta"}</Button>{error&&<p className="text-sm text-red-600">{error}</p>}</div>}
