@@ -181,7 +181,8 @@ export default async function PacienteDetailPage({
       {/* Vacunas */}
       {vacunas && vacunas.length > 0 && (
         <Section title="💉 Vacunas" count={vacunas.length}>
-          <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
+          <div className="space-y-2 md:hidden">{vacunas.map((v) => <article key={v.vac_id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-800">{v.vac_marca?.trim() || "Vacuna"}</p><p className="mt-1 text-sm text-slate-600">{v.vac_clase?.trim() || "Clase sin registrar"}</p></div>{v.vac_fproxima?.trim() && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-700">Próxima: {v.vac_fproxima.trim()}</span>}</div><div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs text-slate-500"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Importe: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span><span>Dr/a: {v.vac_dr?.trim() || "—"}</span></div></article>)}</div>
+          <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b">
                 <tr>
@@ -262,7 +263,8 @@ export default async function PacienteDetailPage({
       {/* Hemogramas */}
       {hemogramas && hemogramas.length > 0 && (
         <Section title="🩸 Hemogramas" count={hemogramas.length}>
-          <div className="bg-white rounded-xl border shadow-sm overflow-x-auto">
+          <div className="space-y-2 md:hidden">{hemogramas.map((h) => <article key={h.hem_id} className="rounded-xl border bg-white p-4 shadow-sm"><p className="font-semibold text-slate-800">🩸 Hemograma · {h.hem_fvisita?.trim() || "Sin fecha"}</p><p className="mt-1 text-xs text-slate-500">Dr/a: {h.hem_dr?.trim() || "—"}</p><dl className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs"><div><dt className="text-slate-500">Leucocitos</dt><dd className="font-medium text-slate-800">{h.hem_leucocitos?.trim() || "—"}</dd></div><div><dt className="text-slate-500">Hemoglobina</dt><dd className="font-medium text-slate-800">{h.hem_hemoglobina?.trim() || "—"}</dd></div><div><dt className="text-slate-500">Hematocrito</dt><dd className="font-medium text-slate-800">{h.hem_hematocritos?.trim() || "—"}</dd></div><div><dt className="text-slate-500">Plaquetas</dt><dd className="font-medium text-slate-800">{h.hem_plaquetas?.trim() || "—"}</dd></div></dl></article>)}</div>
+          <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b">
                 <tr>
