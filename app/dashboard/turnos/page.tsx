@@ -1,10 +1,16 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { TurnosPanel } from "./TurnosPanel";
 
-export default async function TurnosPage({ searchParams }: { searchParams: Promise<{ cliente_id?: string; paciente_id?: string }> }) {
-  const { cliente_id = "", paciente_id = "" } = await searchParams;
+const iso = (date: Date) => date.toISOString().slice(0, 10);
+function monday(value: string) { const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return iso(date); }
+function sunday(start: string) { const date = new Date(`${start}T12:00:00`); date.setDate(date.getDate() + 6); return iso(date); }
+
+export default async function TurnosPage({ searchParams }: { searchParams: Promise<{ cliente_id?: string; paciente_id?: string; week?: string }> }) {
+  const { cliente_id = "", paciente_id = "", week = "" } = await searchParams;
   const supabase = createAdminClient();
-  const { data: turnos } = await supabase.from("turnos").select("*").order("fecha").order("hora").limit(200);
+  const today = iso(new Date());
+  const weekStart = /^\d{4}-\d{2}-\d{2}$/.test(week) ? monday(week) : monday(today);
+  const { data: turnos } = await supabase.from("turnos").select("*").gte("fecha", weekStart).lte("fecha", sunday(weekStart)).order("fecha").order("hora");
   const rows = turnos ?? [];
   const clientIds = [...new Set(rows.map((turn) => Number(turn.cliente_id)).filter(Number.isFinite))];
   const patientIds = [...new Set(rows.map((turn) => Number(turn.paciente_id)).filter(Number.isFinite))];
@@ -19,5 +25,5 @@ export default async function TurnosPage({ searchParams }: { searchParams: Promi
     Number.isInteger(initialClientId) ? supabase.from("pacientes").select("pac_id,pac_nombre,pac_cliente,pac_raz_nombre").eq("pac_cliente", initialClientId).order("pac_nombre").limit(100) : Promise.resolve({ data: [] }),
     Number.isInteger(initialClientId) && Number.isInteger(initialPatientId) ? supabase.from("pacientes").select("pac_id").eq("pac_id", initialPatientId).eq("pac_cliente", initialClientId).maybeSingle() : Promise.resolve({ data: null }),
   ]);
-  return <TurnosPanel turnos={rows} clientes={clientes ?? []} pacientes={pacientes ?? []} today={new Date().toISOString().slice(0, 10)} initialClient={initialClient} initialPets={initialPets ?? []} initialPatientId={initialPatient?.pac_id} />;
+  return <TurnosPanel turnos={rows} clientes={clientes ?? []} pacientes={pacientes ?? []} today={today} initialWeek={weekStart} initialClient={initialClient} initialPets={initialPets ?? []} initialPatientId={initialPatient?.pac_id} />;
 }
