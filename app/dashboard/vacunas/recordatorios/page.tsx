@@ -18,15 +18,20 @@ export default async function RecordatoriosPage() {
 
   // Cargar pacientes y clientes de esas vacunas
   const pacIds = [...new Set(vacunas?.map((v) => v.vac_idpaciente) ?? [])];
-  const cliIds = [...new Set(vacunas?.map((v) => v.vac_idcliente) ?? [])];
+  const cliIds = [...new Set(vacunas?.map((v) => v.vac_idcliente).filter((id) => Number(id) > 0) ?? [])];
 
   const [{ data: pacientes }, { data: clientes }] = await Promise.all([
-    supabase.from("pacientes").select("pac_id, pac_nombre, pac_raz_siglas").in("pac_id", pacIds),
+    supabase.from("pacientes").select("pac_id, pac_nombre, pac_raz_siglas, pac_cliente").in("pac_id", pacIds),
     supabase.from("clientes").select("cli_id, cli_nombre, cli_apellido, cli_mail, cli_celu, cli_tel1").in("cli_id", cliIds),
   ]);
 
   const pacMap = Object.fromEntries((pacientes ?? []).map((p) => [String(p.pac_id), p]));
-  const cliMap = Object.fromEntries((clientes ?? []).map((c) => [String(c.cli_id), c]));
+  const fallbackCliIds = [...new Set((pacientes ?? []).map((p) => Number(p.pac_cliente)).filter(Number.isFinite))].filter((id) => !(clientes ?? []).some((client) => Number(client.cli_id) === id));
+  const { data: fallbackClientes } = fallbackCliIds.length
+    ? await supabase.from("clientes").select("cli_id, cli_nombre, cli_apellido, cli_mail, cli_celu, cli_tel1").in("cli_id", fallbackCliIds)
+    : { data: [] as { cli_id: number; cli_nombre?: string | null; cli_apellido?: string | null; cli_mail?: string | null; cli_celu?: string | null; cli_tel1?: string | null }[] };
+  const cliMap = Object.fromEntries([...(clientes ?? []), ...(fallbackClientes ?? [])].map((c) => [String(c.cli_id), c]));
+  const clientIdFor = (v: { vac_idcliente?: string | number | null; vac_idpaciente?: string | number | null }) => Number(v.vac_idcliente) || Number(pacMap[String(v.vac_idpaciente)]?.pac_cliente);
 
   const ESPECIE: Record<string, string> = { C: "🐶", F: "🐱", AVE: "🐦" };
 
@@ -42,14 +47,15 @@ export default async function RecordatoriosPage() {
       <div className="space-y-2 md:hidden">
         {vacunas?.map((v) => {
           const pac = pacMap[String(v.vac_idpaciente)];
-          const cli = cliMap[String(v.vac_idcliente)];
+          const clientId = clientIdFor(v);
+          const cli = cliMap[String(clientId)];
           const petName = pac?.pac_nombre?.trim() || `Mascota #${v.vac_idpaciente}`;
-          const ownerName = cli ? `${cli.cli_nombre?.trim() ?? ""} ${cli.cli_apellido?.trim() ?? ""}`.trim() : `Cliente #${v.vac_idcliente}`;
+          const ownerName = cli ? `${cli.cli_nombre?.trim() ?? ""} ${cli.cli_apellido?.trim() ?? ""}`.trim() : `Cliente #${clientId}`;
           const phone = String(cli?.cli_celu || cli?.cli_tel1 || "").replace(/\D/g, "").replace(/^0/, "").replace(/^15/, "");
           const overdue = String(v.vac_fproxima_seg ?? "") < today;
           const text = `Hola ${ownerName}, te recordamos que ${petName} tiene pendiente ${v.vac_marca?.trim() || "una vacuna"}${v.vac_clase?.trim() ? ` (${v.vac_clase.trim()})` : ""} para el ${v.vac_fproxima?.trim() || "próximo control"}. Veterinaria Dalvigay.`;
           return <article key={v.vac_id} className={`rounded-xl border bg-white p-4 shadow-sm ${overdue ? "border-red-200" : ""}`}>
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block truncate font-semibold text-slate-800 hover:text-blue-700">{ESPECIE[pac?.pac_raz_siglas?.trim() ?? ""] ?? "🐾"} {petName}</Link><Link href={`/dashboard/clientes/${v.vac_idcliente}`} className="mt-1 block truncate text-sm text-slate-500 hover:text-blue-700">{ownerName}</Link></div><span className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${overdue ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>{overdue ? "Vencida · " : ""}{v.vac_fproxima?.trim()}</span></div>
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block truncate font-semibold text-slate-800 hover:text-blue-700">{ESPECIE[pac?.pac_raz_siglas?.trim() ?? ""] ?? "🐾"} {petName}</Link>{clientId > 0 ? <Link href={`/dashboard/clientes/${clientId}`} className="mt-1 block truncate text-sm text-slate-500 hover:text-blue-700">{ownerName}</Link> : <span className="mt-1 block truncate text-sm text-slate-400">Sin dueño vinculado</span>}</div><span className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${overdue ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>{overdue ? "Vencida · " : ""}{v.vac_fproxima?.trim()}</span></div>
             <p className="mt-3 text-sm text-slate-600"><b>{v.vac_marca?.trim() || "Vacuna"}</b>{v.vac_clase?.trim() ? ` · ${v.vac_clase.trim()}` : ""}</p>
             <div className="mt-3 flex flex-wrap gap-2"><EnviarBtn vacId={v.vac_id} disabled={!cli?.cli_mail || cli.cli_mail === "0"}/>{phone && <a className="inline-flex h-8 items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 text-xs font-medium text-emerald-800" target="_blank" rel="noreferrer" href={`https://wa.me/54${phone}?text=${encodeURIComponent(text)}`}>WhatsApp</a>}</div>
           </article>;
@@ -73,7 +79,8 @@ export default async function RecordatoriosPage() {
           <tbody className="divide-y divide-slate-100">
             {vacunas?.map((v) => {
               const pac = pacMap[String(v.vac_idpaciente)];
-              const cli = cliMap[String(v.vac_idcliente)];
+              const clientId = clientIdFor(v);
+              const cli = cliMap[String(clientId)];
               const tieneEmail = cli?.cli_mail && cli.cli_mail !== "0";
               const overdue = String(v.vac_fproxima_seg ?? "") < today;
               return (
@@ -83,7 +90,7 @@ export default async function RecordatoriosPage() {
                     <Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="font-medium text-slate-800 hover:text-blue-700 hover:underline">{pac?.pac_nombre?.trim() ?? `#${v.vac_idpaciente}`}</Link>
                   </td>
                   <td className="px-4 py-2.5 text-slate-600">
-                    <Link href={`/dashboard/clientes/${v.vac_idcliente}`} className="hover:text-blue-700 hover:underline">{cli ? `${cli.cli_nombre?.trim()} ${cli.cli_apellido?.trim()}` : `#${v.vac_idcliente}`}</Link>
+                    {clientId > 0 ? <Link href={`/dashboard/clientes/${clientId}`} className="hover:text-blue-700 hover:underline">{cli ? `${cli.cli_nombre?.trim()} ${cli.cli_apellido?.trim()}` : `#${clientId}`}</Link> : <span className="text-slate-400">Sin dueño</span>}
                   </td>
                   <td className="px-4 py-2.5 text-xs text-slate-500">
                     {tieneEmail ? cli!.cli_mail : <span className="text-red-400 italic">sin email</span>}
