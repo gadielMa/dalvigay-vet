@@ -4,14 +4,15 @@ import Link from "next/link";
 
 export default async function RecordatoriosPage() {
   const supabase = createAdminClient();
+  const today = new Date().toISOString().slice(0, 10);
 
   // Vacunas con fecha próxima no vacía, ordenadas por fecha
   const { data: vacunas } = await supabase
     .from("vacunas")
-    .select("vac_id, vac_idpaciente, vac_idcliente, vac_fvisita, vac_fproxima, vac_marca, vac_clase, vac_dr, vac_pac_raz_esp")
-    .neq("vac_fproxima", "")
-    .not("vac_fproxima", "is", null)
-    .order("vac_fproxima")
+    .select("vac_id, vac_idpaciente, vac_idcliente, vac_fvisita, vac_fproxima, vac_fproxima_seg, vac_marca, vac_clase, vac_dr, vac_pac_raz_esp")
+    .not("vac_fproxima_seg", "is", null)
+    .neq("vac_fproxima_seg", "")
+    .order("vac_fproxima_seg", { ascending: true })
     .limit(200);
 
   // Cargar pacientes y clientes de esas vacunas
@@ -44,9 +45,10 @@ export default async function RecordatoriosPage() {
           const petName = pac?.pac_nombre?.trim() || `Mascota #${v.vac_idpaciente}`;
           const ownerName = cli ? `${cli.cli_nombre?.trim() ?? ""} ${cli.cli_apellido?.trim() ?? ""}`.trim() : `Cliente #${v.vac_idcliente}`;
           const phone = String(cli?.cli_celu || cli?.cli_tel1 || "").replace(/\D/g, "").replace(/^0/, "").replace(/^15/, "");
+          const overdue = String(v.vac_fproxima_seg ?? "") < today;
           const text = `Hola ${ownerName}, te recordamos que ${petName} tiene pendiente ${v.vac_marca?.trim() || "una vacuna"}${v.vac_clase?.trim() ? ` (${v.vac_clase.trim()})` : ""} para el ${v.vac_fproxima?.trim() || "próximo control"}. Veterinaria Dalvigay.`;
-          return <article key={v.vac_id} className="rounded-xl border bg-white p-4 shadow-sm">
-            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block truncate font-semibold text-slate-800 hover:text-blue-700">{ESPECIE[pac?.pac_raz_siglas?.trim() ?? ""] ?? "🐾"} {petName}</Link><Link href={`/dashboard/clientes/${v.vac_idcliente}`} className="mt-1 block truncate text-sm text-slate-500 hover:text-blue-700">{ownerName}</Link></div><span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700">{v.vac_fproxima?.trim()}</span></div>
+          return <article key={v.vac_id} className={`rounded-xl border bg-white p-4 shadow-sm ${overdue ? "border-red-200" : ""}`}>
+            <div className="flex items-start justify-between gap-3"><div className="min-w-0"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block truncate font-semibold text-slate-800 hover:text-blue-700">{ESPECIE[pac?.pac_raz_siglas?.trim() ?? ""] ?? "🐾"} {petName}</Link><Link href={`/dashboard/clientes/${v.vac_idcliente}`} className="mt-1 block truncate text-sm text-slate-500 hover:text-blue-700">{ownerName}</Link></div><span className={`shrink-0 rounded-full px-2 py-1 text-xs font-medium ${overdue ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>{overdue ? "Vencida · " : ""}{v.vac_fproxima?.trim()}</span></div>
             <p className="mt-3 text-sm text-slate-600"><b>{v.vac_marca?.trim() || "Vacuna"}</b>{v.vac_clase?.trim() ? ` · ${v.vac_clase.trim()}` : ""}</p>
             <div className="mt-3 flex flex-wrap gap-2"><EnviarBtn vacId={v.vac_id} disabled={!cli?.cli_mail || cli.cli_mail === "0"}/>{phone && <a className="inline-flex h-8 items-center rounded-md border border-emerald-200 bg-emerald-50 px-3 text-xs font-medium text-emerald-800" target="_blank" rel="noreferrer" href={`https://wa.me/54${phone}?text=${encodeURIComponent(text)}`}>WhatsApp</a>}</div>
           </article>;
@@ -64,7 +66,7 @@ export default async function RecordatoriosPage() {
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Vacuna</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Última visita</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Próxima</th>
-              <th className="px-4 py-2.5 text-center font-medium text-slate-600">Email</th>
+              <th className="px-4 py-2.5 text-center font-medium text-slate-600">Enviar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -72,6 +74,7 @@ export default async function RecordatoriosPage() {
               const pac = pacMap[String(v.vac_idpaciente)];
               const cli = cliMap[String(v.vac_idcliente)];
               const tieneEmail = cli?.cli_mail && cli.cli_mail !== "0";
+              const overdue = String(v.vac_fproxima_seg ?? "") < today;
               return (
                 <tr key={v.vac_id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-4 py-2.5">
@@ -90,8 +93,8 @@ export default async function RecordatoriosPage() {
                   </td>
                   <td className="px-4 py-2.5 text-xs text-slate-500">{v.vac_fvisita?.trim() || "—"}</td>
                   <td className="px-4 py-2.5">
-                    <span className="bg-amber-50 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                      {v.vac_fproxima?.trim()}
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${overdue ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"}`}>
+                      {overdue ? "Vencida · " : ""}{v.vac_fproxima?.trim()}
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-center">
