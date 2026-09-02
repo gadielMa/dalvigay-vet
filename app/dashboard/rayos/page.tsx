@@ -16,14 +16,32 @@ export default async function RayosPage({
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
+  // El estudio tiene sólo el ID de la mascota. Así también se puede buscar
+  // por nombre de mascota o por su dueño desde esta pantalla.
+  const term = q.replace(/[,%()]/g, " ").trim();
+  let patientIdsBySearch: number[] = [];
+  if (term) {
+    const [{ data: matchingPets }, { data: matchingOwners }] = await Promise.all([
+      supabase.from("pacientes").select("pac_id").ilike("pac_nombre", `%${term}%`).limit(500),
+      supabase.from("clientes").select("cli_id").or(`cli_nombre.ilike.%${term}%,cli_apellido.ilike.%${term}%,cli_razsoc.ilike.%${term}%`).limit(500),
+    ]);
+    const ownerIds = (matchingOwners ?? []).map((owner) => Number(owner.cli_id)).filter(Number.isFinite);
+    const { data: petsOfOwners } = ownerIds.length
+      ? await supabase.from("pacientes").select("pac_id").in("pac_cliente", ownerIds)
+      : { data: [] as { pac_id: number }[] };
+    patientIdsBySearch = [...new Set([...(matchingPets ?? []), ...(petsOfOwners ?? [])].map((pet) => Number(pet.pac_id)).filter(Number.isFinite))];
+  }
+
   let query = supabase
     .from("rayos")
     .select("ray_id, ray_idpaciente, ray_fvisita, ray_dr, ray_estudio, ray_diag", { count: "exact" })
     .order("ray_fvisita", { ascending: false })
     .range(from, to);
 
-  if (q) {
-    query = query.or(`ray_dr.ilike.%${q}%,ray_estudio.ilike.%${q}%`);
+  if (term) {
+    const filters = [`ray_dr.ilike.%${term}%`, `ray_estudio.ilike.%${term}%`];
+    if (patientIdsBySearch.length) filters.push(`ray_idpaciente.in.(${patientIdsBySearch.slice(0, 500).join(",")})`);
+    query = query.or(filters.join(","));
   }
 
   const { data: rayos, count } = await query;
@@ -43,7 +61,7 @@ export default async function RayosPage({
       </div>
 
       <form method="GET" className="mb-4 flex gap-2 max-w-md">
-        <Input name="q" defaultValue={q} placeholder="Buscar por médico o tipo de estudio…" className="text-sm" />
+        <Input name="q" defaultValue={q} placeholder="Mascota, dueño, médico o estudio…" className="text-sm" />
         <Button type="submit" size="sm">Buscar</Button>
         {q && <Link href="/dashboard/rayos"><Button variant="outline" size="sm">Limpiar</Button></Link>}
       </form>

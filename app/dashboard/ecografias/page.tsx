@@ -16,14 +16,32 @@ export default async function EcografiasPage({
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
 
+  // La ecografía no guarda el nombre de la mascota: primero ubicamos los IDs
+  // por mascota o por dueño y luego los sumamos al filtro del estudio.
+  const term = q.replace(/[,%()]/g, " ").trim();
+  let patientIdsBySearch: number[] = [];
+  if (term) {
+    const [{ data: matchingPets }, { data: matchingOwners }] = await Promise.all([
+      supabase.from("pacientes").select("pac_id").ilike("pac_nombre", `%${term}%`).limit(500),
+      supabase.from("clientes").select("cli_id").or(`cli_nombre.ilike.%${term}%,cli_apellido.ilike.%${term}%,cli_razsoc.ilike.%${term}%`).limit(500),
+    ]);
+    const ownerIds = (matchingOwners ?? []).map((owner) => Number(owner.cli_id)).filter(Number.isFinite);
+    const { data: petsOfOwners } = ownerIds.length
+      ? await supabase.from("pacientes").select("pac_id").in("pac_cliente", ownerIds)
+      : { data: [] as { pac_id: number }[] };
+    patientIdsBySearch = [...new Set([...(matchingPets ?? []), ...(petsOfOwners ?? [])].map((pet) => Number(pet.pac_id)).filter(Number.isFinite))];
+  }
+
   let query = supabase
     .from("ecografias")
     .select("eco_id, eco_idpaciente, eco_fecha, eco_dr, eco_estudio, eco_diag", { count: "exact" })
     .order("eco_fecha", { ascending: false })
     .range(from, to);
 
-  if (q) {
-    query = query.or(`eco_dr.ilike.%${q}%,eco_estudio.ilike.%${q}%`);
+  if (term) {
+    const filters = [`eco_dr.ilike.%${term}%`, `eco_estudio.ilike.%${term}%`];
+    if (patientIdsBySearch.length) filters.push(`eco_idpaciente.in.(${patientIdsBySearch.slice(0, 500).join(",")})`);
+    query = query.or(filters.join(","));
   }
 
   const { data: ecos, count } = await query;
@@ -43,7 +61,7 @@ export default async function EcografiasPage({
       </div>
 
       <form method="GET" className="mb-4 flex gap-2 max-w-md">
-        <Input name="q" defaultValue={q} placeholder="Buscar por médico o tipo de estudio…" className="text-sm" />
+        <Input name="q" defaultValue={q} placeholder="Mascota, dueño, médico o estudio…" className="text-sm" />
         <Button type="submit" size="sm">Buscar</Button>
         {q && <Link href="/dashboard/ecografias"><Button variant="outline" size="sm">Limpiar</Button></Link>}
       </form>
