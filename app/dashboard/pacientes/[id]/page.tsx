@@ -54,7 +54,7 @@ export default async function PacienteDetailPage({
 
   const { data: cliente } = await supabase
     .from("clientes")
-    .select("cli_nombre,cli_apellido,cli_celu,cli_mail,cli_tel1")
+    .select("cli_id,cli_nombre,cli_apellido,cli_celu,cli_mail,cli_tel1")
     .eq("cli_id", paciente.pac_cliente)
     .single();
 
@@ -102,6 +102,7 @@ export default async function PacienteDetailPage({
             <div className="mt-4 flex flex-wrap gap-2 border-t pt-3">
               <Link href={`/dashboard/clientes/${paciente.pac_cliente}`}><Button variant="outline" size="sm">Ver ficha del dueño</Button></Link>
               {String(cliente.cli_celu || cliente.cli_tel1 || "").replace(/\D/g, "") && <a href={`https://wa.me/54${String(cliente.cli_celu || cliente.cli_tel1).replace(/\D/g, "").replace(/^0/, "").replace(/^15/, "")}`} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center rounded-md bg-emerald-600 px-3 text-xs font-medium text-white">WhatsApp</a>}
+              {cliente.cli_mail?.trim() && cliente.cli_mail.trim() !== "0" && <Link href={`/dashboard/comunicaciones?cliente_id=${cliente.cli_id}`} className="inline-flex h-8 items-center rounded-md border bg-white px-3 text-xs font-medium text-slate-700">✉️ Redactar email</Link>}
             </div>
           </div>
         )}
