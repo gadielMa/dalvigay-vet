@@ -46,7 +46,18 @@ export default async function HistoriaClinicaPage({
   }
 
   const { data: registros, count } = await query;
-  const patientIds = [...new Set((registros ?? []).map((record) => Number(record.hcr_hcc_idpaciente)).filter(Number.isFinite))];
+  let nuevasQuery = supabase.from("consultas_nuevas").select("*").order("fecha", { ascending: false }).limit(100);
+  if (term) {
+    const filters = [`titulo.ilike.%${term}%`, `profesional.ilike.%${term}%`, `detalle.ilike.%${term}%`];
+    if (Number.isInteger(Number(term))) filters.push(`paciente_id.eq.${Number(term)}`);
+    if (patientIdsBySearch.length) filters.push(`paciente_id.in.(${patientIdsBySearch.slice(0, 500).join(",")})`);
+    nuevasQuery = nuevasQuery.or(filters.join(","));
+  }
+  const { data: consultasNuevas } = await nuevasQuery;
+  const patientIds = [...new Set([
+    ...(registros ?? []).map((record) => Number(record.hcr_hcc_idpaciente)),
+    ...(consultasNuevas ?? []).map((record) => Number(record.paciente_id)),
+  ].filter(Number.isFinite))];
   const { data: pacientes } = patientIds.length
     ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas,pac_cliente").in("pac_id", patientIds)
     : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null; pac_cliente?: number | null }[] };
@@ -127,6 +138,18 @@ export default async function HistoriaClinicaPage({
           </div>
         )}
       </div>
+
+      {consultasNuevas && consultasNuevas.length > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-3 text-base font-semibold text-slate-800">🩺 Consultas nuevas ({consultasNuevas.length})</h2>
+          <div className="space-y-3">
+            {consultasNuevas.map((consulta) => {
+              const patientId = String(consulta.paciente_id ?? "");
+              return <article key={consulta.id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-2"><div><Link href={`/dashboard/pacientes/${patientId}`} className="font-medium text-slate-800 hover:text-blue-700 hover:underline">🩺 {patientNames[patientId] || `Paciente #${patientId}`}</Link><p className="mt-1 text-xs text-slate-500">{String(consulta.fecha ?? "").trim() || "Sin fecha"} · {String(consulta.titulo ?? "Consulta").trim()} · Dr/a: {String(consulta.profesional ?? "—").trim()}</p></div><span className="rounded-full bg-blue-50 px-2 py-1 text-xs text-blue-700">Nueva</span></div>{String(consulta.detalle ?? "").trim() && <p className="mt-3 border-t pt-3 text-sm leading-relaxed text-slate-600 whitespace-pre-wrap">{String(consulta.detalle).trim()}</p>}{String(consulta.tratamiento ?? "").trim() && <p className="mt-2 text-sm text-slate-600"><b>Indicaciones:</b> {String(consulta.tratamiento).trim()}</p>}</article>;
+            })}
+          </div>
+        </section>
+      )}
 
       {pages > 1 && (
         <div className="flex items-center gap-2 mt-4 text-sm">
