@@ -17,6 +17,7 @@ export const metadata: Metadata = {
   title: "Dalvigay Veterinaria",
   description: "Sistema de gestión de la Veterinaria Dalvigay",
   applicationName: "Dalvigay Veterinaria",
+  appleWebApp: { capable: true, title: "Dalvigay" },
 };
 
 export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#1e293b" };
