@@ -27,6 +27,11 @@ export default async function RayosPage({
   }
 
   const { data: rayos, count } = await query;
+  const patientIds = [...new Set((rayos ?? []).map((ray) => Number(ray.ray_idpaciente)).filter(Number.isFinite))];
+  const { data: pacientes } = patientIds.length
+    ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas").in("pac_id", patientIds)
+    : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null }[] };
+  const patientNames = Object.fromEntries((pacientes ?? []).map((patient) => [String(patient.pac_id), `${patient.pac_raz_siglas?.trim() === "F" ? "🐱" : "🐾"} ${patient.pac_nombre?.trim() || `Paciente #${patient.pac_id}`}`]));
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
 
@@ -50,7 +55,7 @@ export default async function RayosPage({
               <span className="text-2xl">☢️</span>
               <div>
                 <div className="font-medium text-slate-800 text-sm">
-                  <Link href={`/dashboard/pacientes/${r.ray_idpaciente}`} className="text-blue-700 hover:underline">Paciente #{r.ray_idpaciente}</Link> · {r.ray_estudio?.trim() || "Rayos X"}
+                  <Link href={`/dashboard/pacientes/${r.ray_idpaciente}`} className="text-blue-700 hover:underline">{patientNames[String(r.ray_idpaciente)] || `Paciente #${r.ray_idpaciente}`}</Link> · {r.ray_estudio?.trim() || "Rayos X"}
                 </div>
                 <div className="text-xs text-slate-500">
                   {r.ray_fvisita?.trim() || "Sin fecha"} · Dr/a: {r.ray_dr?.trim() || "—"}

@@ -27,6 +27,11 @@ export default async function EcografiasPage({
   }
 
   const { data: ecos, count } = await query;
+  const patientIds = [...new Set((ecos ?? []).map((eco) => Number(eco.eco_idpaciente)).filter(Number.isFinite))];
+  const { data: pacientes } = patientIds.length
+    ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas").in("pac_id", patientIds)
+    : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null }[] };
+  const patientNames = Object.fromEntries((pacientes ?? []).map((patient) => [String(patient.pac_id), `${patient.pac_raz_siglas?.trim() === "F" ? "🐱" : "🐾"} ${patient.pac_nombre?.trim() || `Paciente #${patient.pac_id}`}`]));
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
 
@@ -50,7 +55,7 @@ export default async function EcografiasPage({
               <span className="text-2xl">🔬</span>
               <div className="flex-1">
                 <div className="font-medium text-slate-800 text-sm">
-                  <Link href={`/dashboard/pacientes/${e.eco_idpaciente}`} className="text-blue-700 hover:underline">Paciente #{e.eco_idpaciente}</Link> · {e.eco_estudio?.trim() || "Ecografía"}
+                  <Link href={`/dashboard/pacientes/${e.eco_idpaciente}`} className="text-blue-700 hover:underline">{patientNames[String(e.eco_idpaciente)] || `Paciente #${e.eco_idpaciente}`}</Link> · {e.eco_estudio?.trim() || "Ecografía"}
                 </div>
                 <div className="text-xs text-slate-500">
                   {e.eco_fecha?.trim() || "Sin fecha"} · Dr/a: {e.eco_dr?.trim() || "—"}
