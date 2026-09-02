@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { argentinaDate } from "@/lib/date";
 import { requireSession } from "@/lib/operacion";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -28,7 +29,7 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient();
     const { data: last } = await supabase.from("pacientes").select("pac_id").order("pac_id", { ascending: false }).limit(1).maybeSingle();
     const apellido = text(body.pac_apellido);
-    const now = new Date().toISOString().slice(0, 10);
+    const now = argentinaDate();
     const record = {
       pac_id: Number(last?.pac_id ?? 0) + 1, pac_nombre: nombre, pac_apellido: apellido,
       pac_nomcomp: `${nombre} ${apellido}`.trim(), pac_fecha_nac: text(body.pac_fecha_nac),

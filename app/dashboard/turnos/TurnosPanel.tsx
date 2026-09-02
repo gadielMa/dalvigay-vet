@@ -4,11 +4,12 @@ import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { argentinaDate } from "@/lib/date";
 
 type Cliente = { cli_id: number; cli_nombre?: string | null; cli_apellido?: string | null; cli_mail?: string | null; cli_celu?: string | null; cli_tel1?: string | null };
 type Paciente = { pac_id: number; pac_nombre?: string | null; pac_cliente?: number; pac_raz_nombre?: string | null };
 type Turno = { id: number; fecha: string; hora: string; cliente_id: number; paciente_id: number; motivo: string; estado: string };
-const iso = (date: Date) => date.toISOString().slice(0, 10);
+const iso = (date: Date) => argentinaDate(date);
 const clean = (value: unknown) => String(value ?? "").trim();
 const ownerName = (client: Cliente) => `${clean(client.cli_apellido)}, ${clean(client.cli_nombre)}`.replace(/^, /, "") || `Cliente #${client.cli_id}`;
 function monday(value: string) { const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return iso(date); }

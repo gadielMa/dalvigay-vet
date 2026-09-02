@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { argentinaDate } from "@/lib/date";
 import { getSession } from "@/lib/auth";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => argentinaDate();
 const clean = (value: unknown) => String(value ?? "").trim() || "—";
 
 export default async function DashboardPage() {

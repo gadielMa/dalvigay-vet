@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { argentinaDate } from "@/lib/date";
 import { requireSession } from "@/lib/operacion";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
       : [];
     const numberOrNull = (value: unknown) => value === "" || value == null ? null : Number(value);
     const { data, error } = await createAdminClient().from("consultas_nuevas").insert({
-      paciente_id: pacienteId, fecha: body.fecha || new Date().toISOString().slice(0, 10), titulo, detalle,
+      paciente_id: pacienteId, fecha: body.fecha || argentinaDate(), titulo, detalle,
       tratamiento: String(body.tratamiento ?? "").trim() || null, profesional: String(body.profesional ?? "").trim() || null,
       peso: numberOrNull(body.peso), temperatura: numberOrNull(body.temperatura), adjuntos, creado_por: session.nombre,
     }).select().single();

@@ -1,10 +1,11 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import EnviarBtn from "./EnviarBtn";
 import Link from "next/link";
+import { argentinaDate } from "@/lib/date";
 
 export default async function RecordatoriosPage() {
   const supabase = createAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = argentinaDate();
 
   // Vacunas con fecha próxima no vacía, ordenadas por fecha
   const { data: vacunas } = await supabase

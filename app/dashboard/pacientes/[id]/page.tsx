@@ -6,6 +6,7 @@ import { NuevaConsulta } from "./NuevaConsulta";
 import { PacienteActions } from "./PacienteActions";
 import { ClinicalAdditions } from "./ClinicalAdditions";
 import { PrintPatientButton } from "./PrintPatientButton";
+import { argentinaDate } from "@/lib/date";
 
 const ESPECIE: Record<string, string> = { C: "🐶 Canino", F: "🐱 Felino", AVE: "🐦 Ave" };
 
@@ -16,7 +17,7 @@ export default async function PacienteDetailPage({
 }) {
   const { id } = await params;
   const supabase = createAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = argentinaDate();
 
   const [
     { data: paciente },

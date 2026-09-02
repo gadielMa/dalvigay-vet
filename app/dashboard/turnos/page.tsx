@@ -1,7 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { TurnosPanel } from "./TurnosPanel";
+import { argentinaDate } from "@/lib/date";
 
-const iso = (date: Date) => date.toISOString().slice(0, 10);
+const iso = (date: Date) => argentinaDate(date);
 function monday(value: string) { const date = new Date(`${value}T12:00:00`); date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); return iso(date); }
 function sunday(start: string) { const date = new Date(`${start}T12:00:00`); date.setDate(date.getDate() + 6); return iso(date); }
 

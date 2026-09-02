@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Button } from "@/components/ui/button";
 import { NuevaMascota } from "./NuevaMascota";
 import { ClientActions } from "./ClientActions";
+import { argentinaDate } from "@/lib/date";
 
 const clean = (value: unknown) => {
   const text = String(value ?? "").trim();
@@ -15,7 +16,7 @@ export default async function ClienteDetailPage({ params }: { params: Promise<{ 
   const clientId = Number(id);
   if (!Number.isInteger(clientId)) notFound();
   const supabase = createAdminClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = argentinaDate();
   const [{ data: cliente }, { data: mascotas }, { data: saldos }, { data: turnos }] = await Promise.all([
     supabase.from("clientes").select("*").eq("cli_id", clientId).single(),
     supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_nombre,pac_raz_siglas,pac_sexo,pac_fecha_nac").eq("pac_cliente", clientId).order("pac_nombre"),
