@@ -15,6 +15,19 @@ export default async function HistoriaClinicaPage({
   const current = Math.max(1, parseInt(page));
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
+  const term = q.replace(/[,%()]/g, " ").trim();
+  let patientIdsBySearch: number[] = [];
+  if (term) {
+    const [{ data: matchingPets }, { data: matchingOwners }] = await Promise.all([
+      supabase.from("pacientes").select("pac_id").ilike("pac_nombre", `%${term}%`).limit(500),
+      supabase.from("clientes").select("cli_id").or(`cli_nombre.ilike.%${term}%,cli_apellido.ilike.%${term}%,cli_razsoc.ilike.%${term}%`).limit(500),
+    ]);
+    const ownerIds = (matchingOwners ?? []).map((owner) => Number(owner.cli_id)).filter(Number.isFinite);
+    const { data: petsOfOwners } = ownerIds.length
+      ? await supabase.from("pacientes").select("pac_id").in("pac_cliente", ownerIds)
+      : { data: [] as { pac_id: number }[] };
+    patientIdsBySearch = [...new Set([...(matchingPets ?? []), ...(petsOfOwners ?? [])].map((pet) => Number(pet.pac_id)).filter(Number.isFinite))];
+  }
 
   let query = supabase
     .from("hcren")
@@ -25,18 +38,25 @@ export default async function HistoriaClinicaPage({
     .order("hcr_fecha_hc", { ascending: false })
     .range(from, to);
 
-  if (q) {
-    query = query.or(
-      `hcr_hcc_idpaciente.eq.${isNaN(Number(q)) ? 0 : q},hcr_dr.ilike.%${q}%,hcr_titulo.ilike.%${q}%`,
-    );
+  if (term) {
+    const filters = [`hcr_dr.ilike.%${term}%`, `hcr_titulo.ilike.%${term}%`];
+    if (Number.isInteger(Number(term))) filters.push(`hcr_hcc_idpaciente.eq.${Number(term)}`);
+    if (patientIdsBySearch.length) filters.push(`hcr_hcc_idpaciente.in.(${patientIdsBySearch.slice(0, 500).join(",")})`);
+    query = query.or(filters.join(","));
   }
 
   const { data: registros, count } = await query;
   const patientIds = [...new Set((registros ?? []).map((record) => Number(record.hcr_hcc_idpaciente)).filter(Number.isFinite))];
   const { data: pacientes } = patientIds.length
-    ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas").in("pac_id", patientIds)
-    : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null }[] };
+    ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_raz_siglas,pac_cliente").in("pac_id", patientIds)
+    : { data: [] as { pac_id: number; pac_nombre?: string | null; pac_raz_siglas?: string | null; pac_cliente?: number | null }[] };
   const patientNames = Object.fromEntries((pacientes ?? []).map((patient) => [String(patient.pac_id), `${patient.pac_raz_siglas?.trim() === "F" ? "🐱" : "🐾"} ${patient.pac_nombre?.trim() || `Paciente #${patient.pac_id}`}`]));
+  const ownerIds = [...new Set((pacientes ?? []).map((patient) => Number(patient.pac_cliente)).filter(Number.isFinite))];
+  const { data: owners } = ownerIds.length
+    ? await supabase.from("clientes").select("cli_id,cli_nombre,cli_apellido").in("cli_id", ownerIds)
+    : { data: [] as { cli_id: number; cli_nombre?: string | null; cli_apellido?: string | null }[] };
+  const ownerNames = Object.fromEntries((owners ?? []).map((owner) => [String(owner.cli_id), `${owner.cli_apellido?.trim() || ""}, ${owner.cli_nombre?.trim() || ""}`.replace(/^, |, $/g, "") || `Cliente #${owner.cli_id}`]));
+  const ownerForPatient = (patientId: string | number | null) => (pacientes ?? []).find((patient) => Number(patient.pac_id) === Number(patientId))?.pac_cliente;
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
 
@@ -51,7 +71,7 @@ export default async function HistoriaClinicaPage({
         <Input
           name="q"
           defaultValue={q}
-          placeholder="Buscar por ID paciente, médico o título…"
+          placeholder="Mascota, dueño, médico, título o ID…"
           className="text-sm"
         />
         <Button type="submit" size="sm">Buscar</Button>
@@ -79,6 +99,7 @@ export default async function HistoriaClinicaPage({
                   <div className="text-xs text-slate-500">
                     {r.hcr_fecha_hc?.trim() || "Sin fecha"} · Dr/a: {r.hcr_dr?.trim() || "—"}
                   </div>
+                  {ownerForPatient(r.hcr_hcc_idpaciente) && <Link href={`/dashboard/clientes/${ownerForPatient(r.hcr_hcc_idpaciente)}`} className="mt-1 block text-xs text-blue-700 hover:underline">👤 {ownerNames[String(ownerForPatient(r.hcr_hcc_idpaciente))] || "Ver dueño"}</Link>}
                 </div>
               </div>
               <div className="flex gap-3 text-xs text-slate-500 shrink-0">
