@@ -111,21 +111,21 @@ export default async function PacienteDetailPage({
       {/* Estadísticas rápidas */}
       <div className="flex gap-3 mb-6 flex-wrap">
         {[
-          { icon: "📋", count: hc?.length ?? 0, label: "consultas" },
-          { icon: "💉", count: vacunas?.length ?? 0, label: "vacunas" },
-          { icon: "🔬", count: ecografias?.length ?? 0, label: "ecografías" },
-          { icon: "☢️", count: rayos?.length ?? 0, label: "rayos" },
-          { icon: "🩸", count: hemogramas?.length ?? 0, label: "hemogramas" },
-          { icon: "🧪", count: orinas?.length ?? 0, label: "orinas" },
-          { icon: "⚗️", count: quimicas?.length ?? 0, label: "químicas" },
-          { icon: "🪱", count: ectoendos?.length ?? 0, label: "ecto/endo" },
-          { icon: "🗓️", count: turnos?.length ?? 0, label: "turnos próximos" },
+          { icon: "📋", count: hc?.length ?? 0, label: "consultas", id: "historia-clinica" },
+          { icon: "💉", count: vacunas?.length ?? 0, label: "vacunas", id: "vacunas" },
+          { icon: "🔬", count: ecografias?.length ?? 0, label: "ecografías", id: "ecografias" },
+          { icon: "☢️", count: rayos?.length ?? 0, label: "rayos", id: "rayos-x" },
+          { icon: "🩸", count: hemogramas?.length ?? 0, label: "hemogramas", id: "hemogramas" },
+          { icon: "🧪", count: orinas?.length ?? 0, label: "orinas", id: "orina" },
+          { icon: "⚗️", count: quimicas?.length ?? 0, label: "químicas", id: "quimica-sanguinea" },
+          { icon: "🪱", count: ectoendos?.length ?? 0, label: "ecto/endo", id: "ecto-endoparasitarios" },
+          { icon: "🗓️", count: turnos?.length ?? 0, label: "turnos próximos", id: "proximos-turnos" },
         ].map((s) => (
-          <div key={s.label} className="bg-white border rounded-lg px-4 py-2 flex items-center gap-2 text-sm shadow-sm">
+          <a key={s.label} href={`#${s.id}`} className="bg-white border rounded-lg px-4 py-2 flex items-center gap-2 text-sm shadow-sm transition hover:border-blue-300 hover:bg-blue-50">
             <span>{s.icon}</span>
             <span className="font-semibold text-slate-800">{s.count}</span>
             <span className="text-slate-500">{s.label}</span>
-          </div>
+          </a>
         ))}
       </div>
 
@@ -329,7 +329,7 @@ function Row({ label, value, mono }: { label: string; value?: React.ReactNode; m
 
 function Section({ title, count, children }: { title: string; count: number; children: React.ReactNode }) {
   return (
-    <div className="mb-6">
+    <div id={sectionAnchor(title)} className="mb-6 scroll-mt-4">
       <h2 className="text-sm font-semibold text-slate-700 mb-3">
         {title} <span className="text-slate-400 font-normal">({count})</span>
       </h2>
@@ -337,3 +337,5 @@ function Section({ title, count, children }: { title: string; count: number; chi
     </div>
   );
 }
+
+function sectionAnchor(title: string) { return title.replace(/^[^A-Za-zÁÉÍÓÚáéíóúÑñ]+/, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
