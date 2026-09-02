@@ -82,6 +82,11 @@ export default async function PacientesPage({
   }
 
   const { data: pacientes, count } = await query;
+  const clientIds = [...new Set((pacientes ?? []).map((patient) => Number(patient.pac_cliente)).filter(Number.isFinite))];
+  const { data: owners } = clientIds.length
+    ? await supabase.from("clientes").select("cli_id,cli_nombre,cli_apellido").in("cli_id", clientIds)
+    : { data: [] as { cli_id: number; cli_nombre?: string | null; cli_apellido?: string | null }[] };
+  const ownersById = Object.fromEntries((owners ?? []).map((owner) => [String(owner.cli_id), `${owner.cli_apellido?.trim() || ""}, ${owner.cli_nombre?.trim() || ""}`.replace(/^, |, $/g, "") || `Cliente #${owner.cli_id}`]));
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginaHref = (p: number) =>
@@ -119,20 +124,23 @@ export default async function PacientesPage({
 
       <div className="space-y-2 md:hidden">
         {pacientes?.map((p) => (
-          <Link key={p.pac_id} href={`/dashboard/pacientes/${p.pac_id}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-slate-800">{p.pac_nombre?.trim() || `Paciente #${p.pac_id}`}</p>
-                <p className="mt-1 text-sm text-slate-500">{ESPECIE[p.pac_raz_siglas?.trim()] ?? "🐾"} {p.pac_raz_nombre?.trim() || "Raza sin registrar"}</p>
+          <article key={p.pac_id} className="rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
+            <Link href={`/dashboard/pacientes/${p.pac_id}`} className="block">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-800">{p.pac_nombre?.trim() || `Paciente #${p.pac_id}`}</p>
+                  <p className="mt-1 text-sm text-slate-500">{ESPECIE[p.pac_raz_siglas?.trim()] ?? "🐾"} {p.pac_raz_nombre?.trim() || "Raza sin registrar"}</p>
+                </div>
+                <span className="shrink-0 text-xs text-blue-700">Ver ficha →</span>
               </div>
-              <span className="shrink-0 text-xs text-blue-700">Ver ficha →</span>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500">
-              <span>Sexo: {p.pac_sexo === "M" ? "Macho" : p.pac_sexo === "H" ? "Hembra" : p.pac_sexo?.trim() || "—"}</span>
-              <span className="truncate">Microchip: {p.pac_microchip?.trim() || "—"}</span>
-              <span className="col-span-2">Nacimiento: {p.pac_fecha_nac?.trim() || "—"}</span>
-            </div>
-          </Link>
+              <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-slate-500">
+                <span>Sexo: {p.pac_sexo === "M" ? "Macho" : p.pac_sexo === "H" ? "Hembra" : p.pac_sexo?.trim() || "—"}</span>
+                <span className="truncate">Microchip: {p.pac_microchip?.trim() || "—"}</span>
+                <span className="col-span-2">Nacimiento: {p.pac_fecha_nac?.trim() || "—"}</span>
+              </div>
+            </Link>
+            <Link href={`/dashboard/clientes/${p.pac_cliente}`} className="mt-3 block truncate border-t pt-2 text-xs font-medium text-blue-700">👤 Dueño: {ownersById[String(p.pac_cliente)] || `Cliente #${p.pac_cliente}`} →</Link>
+          </article>
         ))}
         {(!pacientes || pacientes.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
       </div>
@@ -165,7 +173,7 @@ export default async function PacientesPage({
                 </td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs">{p.pac_fecha_nac?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-slate-500 text-xs font-mono">{p.pac_microchip?.trim() || "—"}</td>
-                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/clientes?cliente_id=${p.pac_cliente}`} className="text-blue-700 hover:underline">Ver dueño #{p.pac_cliente}</Link></td>
+                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/clientes/${p.pac_cliente}`} className="text-blue-700 hover:underline">{ownersById[String(p.pac_cliente)] || `Cliente #${p.pac_cliente}`}</Link></td>
               </tr>
             ))}
             {(!pacientes || pacientes.length === 0) && (
