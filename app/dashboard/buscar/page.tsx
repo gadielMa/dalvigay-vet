@@ -24,6 +24,9 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
     : [{ data: [] as Cliente[] }, { data: [] as Paciente[] }];
 
   const clients = (clientResult.data ?? []) as Cliente[];
+  const { data: consultations } = term
+    ? await supabase.from("consultas_nuevas").select("id,paciente_id,fecha,titulo,detalle,profesional").or(`titulo.ilike.%${safeTerm}%,detalle.ilike.%${safeTerm}%,profesional.ilike.%${safeTerm}%`).order("fecha", { ascending: false }).limit(20)
+    : { data: [] as { id: number; paciente_id: number; fecha?: string | null; titulo?: string | null; detalle?: string | null; profesional?: string | null }[] };
   const ownerIds = clients.map((client) => Number(client.cli_id)).filter(Number.isFinite);
   const petsOfOwnersResult = ownerIds.length
     ? await supabase.from("pacientes").select("pac_id,pac_nombre,pac_apellido,pac_raz_nombre,pac_raz_siglas,pac_cliente,pac_microchip").in("pac_cliente", ownerIds).order("pac_nombre").limit(50)
@@ -60,6 +63,20 @@ export default async function BuscarPage({ searchParams }: { searchParams: Promi
                 </Link>
               ))}
               {!clients.length && <p className="rounded-xl border bg-white p-4 text-sm text-slate-400">Sin clientes.</p>}
+            </div>
+          </section>
+
+          <section className="md:col-span-2">
+            <h2 className="mb-3 text-base font-semibold text-slate-700">🩺 Consultas nuevas ({consultations?.length ?? 0})</h2>
+            <div className="grid gap-2 md:grid-cols-2">
+              {consultations?.map((consultation) => (
+                <Link key={consultation.id} href={`/dashboard/pacientes/${consultation.paciente_id}`} className="block rounded-xl border bg-white p-4 shadow-sm hover:border-slate-400">
+                  <div className="font-medium text-slate-800">{consultation.titulo?.trim() || "Consulta"} · {consultation.fecha?.trim() || "Sin fecha"}</div>
+                  <div className="mt-1 text-xs text-slate-500">🐾 {patients.find((patient) => Number(patient.pac_id) === Number(consultation.paciente_id))?.pac_nombre?.trim() || `Paciente #${consultation.paciente_id}`} · Dr/a: {consultation.profesional?.trim() || "—"}</div>
+                  {consultation.detalle?.trim() && <p className="mt-2 line-clamp-2 text-xs text-slate-600">{consultation.detalle.trim()}</p>}
+                </Link>
+              ))}
+              {!consultations?.length && <p className="rounded-xl border bg-white p-4 text-sm text-slate-400">Sin consultas nuevas.</p>}
             </div>
           </section>
 
