@@ -23,6 +23,7 @@ export default async function DashboardLayout({
     { href: "/dashboard/vacunas", label: "💉 Vacunas" },
     { href: "/dashboard/vacunas/recordatorios", label: "📧 Recordatorios" },
     { href: "/dashboard/ecografias", label: "🔬 Ecografías" },
+    { href: "/dashboard/electrocardio", label: "❤️ Electrocardiogramas" },
     { href: "/dashboard/analisis", label: "🧪 Análisis" },
     { href: "/dashboard/parasitos", label: "🪱 Parásitos" },
     { href: "/dashboard/ectoendo", label: "🪱 Tratamientos" },
