@@ -14,14 +14,15 @@ export default function EnviarBtn({ vacId, disabled }: { vacId: number; disabled
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ vac_id: vacId }),
       });
-      setStatus(res.ok ? "sent" : "error");
+      if (res.ok) setStatus("sent");
+      else { const payload = await res.json().catch(() => null); setStatus(payload?.error?.includes("RESEND_API_KEY") ? "error" : "error"); }
     } catch {
       setStatus("error");
     }
   }
 
   if (status === "sent") return <span className="text-green-600 text-xs font-medium">✓ Enviado</span>;
-  if (status === "error") return <span className="text-red-500 text-xs">Error</span>;
+  if (status === "error") return <span className="text-red-500 text-xs" title="Configurá RESEND_API_KEY en Render para enviar emails">Email no configurado</span>;
 
   return (
     <Button

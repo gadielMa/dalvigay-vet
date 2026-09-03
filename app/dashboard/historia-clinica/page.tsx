@@ -122,14 +122,7 @@ export default async function HistoriaClinicaPage({
                 )}
               </div>
             </div>
-            {r.hcr_detalle?.trim() && (
-              <div
-                className="text-xs text-slate-600 leading-relaxed border-t pt-2 mt-2 line-clamp-3"
-                dangerouslySetInnerHTML={{
-                  __html: r.hcr_detalle.trim().replace(/<script[^>]*>.*?<\/script>/gi, ""),
-                }}
-              />
-            )}
+            {r.hcr_detalle?.trim() && <details className="mt-2 border-t pt-2"><summary className="cursor-pointer text-xs font-medium text-blue-700">Ver detalle completo</summary><div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-600" dangerouslySetInnerHTML={{ __html: r.hcr_detalle.trim().replace(/<script[^>]*>.*?<\/script>/gi, "") }} /></details>}
           </div>
         ))}
         {(!registros || registros.length === 0) && (

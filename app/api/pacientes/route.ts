@@ -3,6 +3,8 @@ import { argentinaDate } from "@/lib/date";
 import { requireSession } from "@/lib/operacion";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+export const dynamic = "force-dynamic";
+
 const text = (value: unknown) => String(value ?? "").trim();
 
 export async function GET(req: NextRequest) {
@@ -11,7 +13,7 @@ export async function GET(req: NextRequest) {
     const clientId = Number(req.nextUrl.searchParams.get("cliente_id"));
     const queryText = text(req.nextUrl.searchParams.get("q")).replace(/[,%()]/g, " ");
     if (!Number.isInteger(clientId)) return NextResponse.json({ error: "Falta cliente_id" }, { status: 400 });
-    let query = createAdminClient().from("pacientes").select("pac_id,pac_nombre,pac_cliente,pac_raz_nombre").eq("pac_cliente", clientId).order("pac_nombre").limit(100);
+    let query = createAdminClient().from("pacientes").select("pac_id,pac_nombre,pac_cliente,pac_raz_nombre").filter("pac_cliente", "eq", String(clientId)).order("pac_nombre").limit(100);
     if (queryText) query = query.ilike("pac_nombre", `%${queryText}%`);
     const { data, error } = await query;
     if (error) throw error;

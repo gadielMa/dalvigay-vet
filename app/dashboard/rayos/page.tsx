@@ -34,7 +34,7 @@ export default async function RayosPage({
 
   let query = supabase
     .from("rayos")
-    .select("ray_id, ray_idpaciente, ray_fvisita, ray_dr, ray_estudio, ray_diag", { count: "exact" })
+    .select("*", { count: "exact" })
     .order("ray_fvisita", { ascending: false })
     .range(from, to);
 
@@ -80,6 +80,7 @@ export default async function RayosPage({
                 </div>
               </div>
             </div>
+            {(() => { const candidate = [r.ray_foto, r.ray_imagen, r.ray_archivo, r.ray_adjunto].find((value) => typeof value === "string" && value.trim() && value.trim() !== "0"); return candidate ? <a href={candidate.trim()} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-medium text-blue-700 hover:underline">🖼️ Ver imagen / archivo</a> : null; })()}
             {r.ray_diag?.trim() && (
               <p className="text-xs text-slate-600 border-t pt-2 mt-2 leading-relaxed line-clamp-4 whitespace-pre-wrap">
                 {r.ray_diag.trim()}
