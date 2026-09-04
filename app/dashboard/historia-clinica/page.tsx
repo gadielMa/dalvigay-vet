@@ -68,7 +68,9 @@ export default async function HistoriaClinicaPage({
     : { data: [] as { cli_id: number; cli_nombre?: string | null; cli_apellido?: string | null }[] };
   const ownerNames = Object.fromEntries((owners ?? []).map((owner) => [String(owner.cli_id), `${owner.cli_apellido?.trim() || ""}, ${owner.cli_nombre?.trim() || ""}`.replace(/^, |, $/g, "") || `Cliente #${owner.cli_id}`]));
   const ownerForPatient = (patientId: string | number | null) => (pacientes ?? []).find((patient) => Number(patient.pac_id) === Number(patientId))?.pac_cliente;
-  const total = count ?? 0;
+  // La historia combina registros históricos (hcren) y consultas nuevas.
+  // Antes el contador sólo tomaba hcren y mostraba 0 aunque hubiera consultas.
+  const total = (count ?? 0) + (consultasNuevas?.length ?? 0);
   const pages = Math.ceil(total / PAGE_SIZE);
 
   return (
