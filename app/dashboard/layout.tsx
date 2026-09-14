@@ -35,8 +35,13 @@ export default async function DashboardLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 md:flex">
-      <MobileNav items={nav} />
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      <MobileNav items={nav} nombre={session.nombre} />
+      <header className="sticky top-0 z-30 hidden h-16 items-center justify-between border-b bg-white px-6 md:flex">
+        <Link href="/dashboard" className="text-xl font-bold tracking-tight text-slate-800">🐾 Dalvigay <span className="text-xs font-medium text-slate-500">Veterinaria</span></Link>
+        <div className="flex items-center gap-4"><Link href="/dashboard" className="rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100">⌂ Inicio</Link><span className="text-sm text-slate-600">👤 {session.nombre} · {session.permiso === "777" ? "Admin" : "Usuario"}</span><LogoutButton compact /></div>
+      </header>
+      <div className="flex flex-1">
       {/* Sidebar */}
       <aside className="hidden w-56 shrink-0 flex-col border-r bg-white md:flex">
         <div className="px-4 py-5 border-b">
@@ -64,6 +69,8 @@ export default async function DashboardLayout({
 
       {/* Main */}
       <main className="min-w-0 flex-1 overflow-auto p-4 pb-24 sm:p-6 md:pb-6">{children}</main><QuickActions />
+      </div>
+      <footer className="border-t bg-white px-4 py-5 text-center text-xs text-slate-500">Hecho por <a href="https://www.instagram.com/induliru.tech/" target="_blank" rel="noreferrer" className="font-semibold text-slate-700 hover:text-slate-950 hover:underline">Induliru</a></footer>
     </div>
   );
 }

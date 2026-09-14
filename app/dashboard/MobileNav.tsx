@@ -3,16 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PwaInstallButton } from "./PwaInstallButton";
+import LogoutButton from "./LogoutButton";
 
 export type NavItem = { href: string; label: string };
 
-export function MobileNav({ items }: { items: NavItem[] }) {
+export function MobileNav({ items, nombre }: { items: NavItem[]; nombre: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-white px-4 py-3 md:hidden">
-        <div className="text-lg font-bold tracking-tight text-slate-800">🐾 Dalvigay</div>
-        <div className="flex items-center gap-2"><PwaInstallButton/><button type="button" onClick={() => setOpen(!open)} aria-label="Abrir menú" className="rounded-md border px-3 py-1.5 text-xl leading-none text-slate-700">
+        <Link href="/dashboard" className="text-lg font-bold tracking-tight text-slate-800">🐾 Dalvigay</Link>
+        <div className="flex items-center gap-2"><span className="max-w-24 truncate text-xs text-slate-500">{nombre}</span><PwaInstallButton/><button type="button" onClick={() => setOpen(!open)} aria-label="Abrir menú" className="rounded-md border px-3 py-1.5 text-xl leading-none text-slate-700">
           {open ? "×" : "☰"}
         </button></div>
       </header>
@@ -22,6 +23,7 @@ export function MobileNav({ items }: { items: NavItem[] }) {
         <div className="space-y-1">
           {items.map((item) => <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="block rounded-md px-3 py-3 text-slate-700 hover:bg-slate-100">{item.label}</Link>)}
         </div>
+        <div className="mt-5 border-t pt-4"><LogoutButton /></div>
       </nav>
     </>
   );
