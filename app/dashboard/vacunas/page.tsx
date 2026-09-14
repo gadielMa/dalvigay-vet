@@ -101,13 +101,12 @@ export default async function VacunasPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Estado</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Médico</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Volvió</th>
-              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {vacunas?.map((v) => (
               <tr key={v.vac_id} className="hover:bg-slate-50 transition-colors">
-                <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="text-blue-700 hover:underline">🐾 {patientNames[String(v.vac_idpaciente)] || `#${v.vac_idpaciente}`}</Link></td>
+                <td className="px-4 py-2.5 text-xs"><div className="flex items-center gap-2"><Link href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="text-blue-700 hover:underline">🐾 {patientNames[String(v.vac_idpaciente)] || `#${v.vac_idpaciente}`}</Link><EliminarVacuna id={Number(v.vac_id)} /></div></td>
                 <td className="px-4 py-2.5 text-xs"><Link href={`/dashboard/clientes/${ownerFor(v)}`} className="text-blue-700 hover:underline">{ownerNames[String(ownerFor(v))] || "—"}</Link></td>
                 <td className="px-4 py-2.5 text-lg">{ESPECIE[v.vac_pac_raz_esp?.trim()] ?? "🐾"}</td>
                 <td className="px-4 py-2.5 font-medium text-slate-800">{v.vac_marca?.trim() || "—"}</td>
@@ -120,7 +119,6 @@ export default async function VacunasPage({
                     </span>
                   ) : "—"}
                 </td>
-                <td className="px-4 py-2.5"><EliminarVacuna id={Number(v.vac_id)} /></td>
                 <td className="px-4 py-2.5 font-mono text-xs text-slate-600">{v.vac_nserie?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-xs text-slate-600">${Number(v.vac_tot || 0).toLocaleString("es-AR")} <span className="text-slate-400">({v.vac_cant || "0"} × ${v.vac_precio || "0"})</span></td>
                 <td className="px-4 py-2.5 text-xs">{v.vac_facturar === "1" ? <span className="text-green-700">A facturar</span> : <span className="text-slate-400">No</span>}</td>
@@ -134,7 +132,7 @@ export default async function VacunasPage({
               </tr>
             ))}
             {(!vacunas || vacunas.length === 0) && (
-              <tr><td colSpan={14} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
+              <tr><td colSpan={13} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
             )}
           </tbody>
         </table>
