@@ -112,7 +112,7 @@ export default async function PacienteDetailPage({
       {/* Estadísticas rápidas */}
       <div className="flex gap-3 mb-6 flex-wrap">
         {[
-          { icon: "📋", count: hc?.length ?? 0, label: "consultas", id: "historia-clinica" },
+          { icon: "📋", count: (hc?.length ?? 0) + (consultasNuevas?.length ?? 0), label: "consultas", id: "historia-clinica" },
           { icon: "💉", count: vacunas?.length ?? 0, label: "vacunas", id: "vacunas" },
           { icon: "🔬", count: ecografias?.length ?? 0, label: "ecografías", id: "ecografias" },
           { icon: "☢️", count: rayos?.length ?? 0, label: "rayos", id: "rayos-x" },
