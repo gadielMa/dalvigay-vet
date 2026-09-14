@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-const labels = { vacuna: "vacuna", estudio: "estudio", electro: "electrocardiograma", ectoendo: "registro de ecto/endoparásitos" } as const;
+const labels = { vacuna: "vacuna", estudio: "estudio", electro: "electrocardiograma", ectoendo: "registro de ecto/endoparásitos", orina: "análisis de orina", quimica: "análisis de química sanguínea", hemograma: "hemograma", rayos: "estudio de Rayos X" } as const;
 export function EliminarRegistro({ tipo, id }: { tipo: keyof typeof labels; id: number }) {
   const router = useRouter(); const [busy, setBusy] = useState(false);
   async function remove() {

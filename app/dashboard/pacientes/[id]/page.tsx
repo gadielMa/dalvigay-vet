@@ -303,8 +303,8 @@ export default async function PacienteDetailPage({
         </Section>
       )}
 
-      {orinas && orinas.length > 0 && <Section title="🧪 Análisis de orina" count={orinas.length}><RegistrosCompletos registros={orinas} fecha="ori_fecha" titulo="ori_dr" /></Section>}
-      {quimicas && quimicas.length > 0 && <Section title="⚗️ Química sanguínea" count={quimicas.length}><RegistrosCompletos registros={quimicas} fecha="qs_fvisita" titulo="qs_dr" /></Section>}
+      {orinas && orinas.length > 0 && <Section title="🧪 Análisis de orina" count={orinas.length}><RegistrosCompletos registros={orinas} fecha="ori_fecha" titulo="ori_dr" deleteTipo="orina" deleteId="ori_id" /></Section>}
+      {quimicas && quimicas.length > 0 && <Section title="⚗️ Química sanguínea" count={quimicas.length}><RegistrosCompletos registros={quimicas} fecha="qs_fvisita" titulo="qs_dr" deleteTipo="quimica" deleteId="qs_id" /></Section>}
       {ectoendos && ectoendos.length > 0 && <Section title="🪱 Ecto / endoparasitarios" count={ectoendos.length}><RegistrosCompletos registros={ectoendos} fecha="ee_fvisita" titulo="ee_tipo" deleteTipo="ectoendo" deleteId="ee_id" /></Section>}
       {electros && electros.length > 0 && <Section title="❤️ Electrocardiogramas" count={electros.length}><RegistrosCompletos registros={electros} fecha="ele_fecha" titulo="ele_estudio" deleteTipo="electro" deleteId="ele_id" /></Section>}
       {estudios && estudios.length > 0 && <Section title="🔎 Estudios" count={estudios.length}><RegistrosCompletos registros={estudios} fecha="est_fvisita" titulo="est_titulo" deleteTipo="estudio" deleteId="est_id" /></Section>}
@@ -313,7 +313,7 @@ export default async function PacienteDetailPage({
   );
 }
 
-function RegistrosCompletos({ registros, fecha, titulo, deleteTipo, deleteId }: { registros: Record<string, unknown>[]; fecha: string; titulo: string; deleteTipo?: "vacuna" | "estudio" | "electro" | "ectoendo"; deleteId?: string }) {
+function RegistrosCompletos({ registros, fecha, titulo, deleteTipo, deleteId }: { registros: Record<string, unknown>[]; fecha: string; titulo: string; deleteTipo?: "vacuna" | "estudio" | "electro" | "ectoendo" | "orina" | "quimica" | "hemograma" | "rayos"; deleteId?: string }) {
   return <div className="space-y-3">{registros.map((registro, index) => <details key={index} className="rounded-xl border bg-white p-4 shadow-sm"><summary className="cursor-pointer list-none text-sm font-medium text-slate-800"><span>{texto(registro[fecha]) || "Sin fecha"}</span><span className="text-slate-500"> · {texto(registro[titulo]) || "Ver resultados completos"}</span>{deleteTipo && deleteId && <span className="float-right ml-2" onClick={(event) => event.preventDefault()}><EliminarRegistro tipo={deleteTipo} id={Number(registro[deleteId])} /></span>}<span className="float-right text-xs text-blue-700">Ver detalle</span></summary><dl className="mt-4 grid gap-x-5 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">{Object.entries(registro).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && texto(value)).map(([key, value]) => <div key={key} className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{etiqueta(key)}</dt><dd className="break-words text-slate-800">{texto(value)}</dd></div>)}</dl></details>)}</div>;
 }
 
