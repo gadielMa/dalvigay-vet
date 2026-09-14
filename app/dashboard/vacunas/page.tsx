@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EliminarVacuna } from "./EliminarVacuna";
 
 const PAGE_SIZE = 50;
 
@@ -77,7 +78,7 @@ export default async function VacunasPage({
         {vacunas?.map((v) => (
           <Link key={v.vac_id} href={`/dashboard/pacientes/${v.vac_idpaciente}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
             <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate font-semibold text-slate-800">{ESPECIE[v.vac_pac_raz_esp?.trim()] ?? "🐾"} {patientNames[String(v.vac_idpaciente)] || `Paciente #${v.vac_idpaciente}`}</p><p className="mt-1 truncate text-sm text-slate-600">{v.vac_marca?.trim() || "Vacuna"}{v.vac_clase?.trim() ? ` · ${v.vac_clase.trim()}` : ""}</p></div><span className="shrink-0 text-xs text-blue-700">Ver ficha →</span></div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Próxima: {v.vac_fproxima?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Total: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span><span className="col-span-2 truncate">Dueño: {ownerNames[String(ownerFor(v))] || "—"}</span></div>
+            <div className="mt-3 flex items-center justify-between gap-2 text-xs text-slate-500"><div className="grid grid-cols-2 gap-2"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Próxima: {v.vac_fproxima?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Total: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span><span className="col-span-2 truncate">Dueño: {ownerNames[String(ownerFor(v))] || "—"}</span></div><EliminarVacuna id={Number(v.vac_id)} /></div>
           </Link>
         ))}
         {(!vacunas || vacunas.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
@@ -100,6 +101,7 @@ export default async function VacunasPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Estado</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Médico</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Volvió</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -118,6 +120,7 @@ export default async function VacunasPage({
                     </span>
                   ) : "—"}
                 </td>
+                <td className="px-4 py-2.5"><EliminarVacuna id={Number(v.vac_id)} /></td>
                 <td className="px-4 py-2.5 font-mono text-xs text-slate-600">{v.vac_nserie?.trim() || "—"}</td>
                 <td className="px-4 py-2.5 text-xs text-slate-600">${Number(v.vac_tot || 0).toLocaleString("es-AR")} <span className="text-slate-400">({v.vac_cant || "0"} × ${v.vac_precio || "0"})</span></td>
                 <td className="px-4 py-2.5 text-xs">{v.vac_facturar === "1" ? <span className="text-green-700">A facturar</span> : <span className="text-slate-400">No</span>}</td>
@@ -131,7 +134,7 @@ export default async function VacunasPage({
               </tr>
             ))}
             {(!vacunas || vacunas.length === 0) && (
-              <tr><td colSpan={13} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
+              <tr><td colSpan={14} className="px-4 py-8 text-center text-slate-400">Sin resultados</td></tr>
             )}
           </tbody>
         </table>
