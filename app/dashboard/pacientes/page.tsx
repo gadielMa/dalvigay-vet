@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BajaPaciente } from "./[id]/BajaPaciente";
 
 const PAGE_SIZE = 50;
 const ESPECIE: Record<string, string> = { C: "🐶", F: "🐱", AVE: "🐦" };
@@ -168,9 +169,12 @@ export default async function PacientesPage({
             {pacientes?.map((p) => (
               <tr key={p.pac_id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-2.5 font-medium text-slate-800">
-                  <Link href={`/dashboard/pacientes/${p.pac_id}`} className="hover:text-blue-600 hover:underline">
-                    {p.pac_nombre?.trim()}
-                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/dashboard/pacientes/${p.pac_id}`} className="hover:text-blue-600 hover:underline">
+                      {p.pac_nombre?.trim()}
+                    </Link>
+                    <BajaPaciente id={Number(p.pac_id)} nombre={p.pac_nombre?.trim() || "este paciente"} inactivo={p.pac_fecha_des?.trim() === "Inactivo"} />
+                  </div>
                 </td>
                 <td className="px-4 py-2.5 text-lg">{ESPECIE[p.pac_raz_siglas?.trim()] ?? "🐾"}</td>
                 <td className="px-4 py-2.5 text-slate-600">{p.pac_raz_nombre?.trim()}</td>
