@@ -115,16 +115,20 @@ export default async function ClientesPage({
 
       <div className="space-y-2 md:hidden">
         {clientes?.map((c) => (
-          <Link key={c.cli_id} href={`/dashboard/clientes/${c.cli_id}`} className="block rounded-xl border bg-white p-4 shadow-sm active:bg-slate-50">
+          <article key={c.cli_id} className="rounded-xl border bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="truncate font-semibold text-slate-800">{`${c.cli_apellido?.trim() ?? ""}, ${c.cli_nombre?.trim() ?? ""}`.replace(/^, /, "") || `Cliente #${c.cli_id}`}</p>
                 <p className="mt-1 truncate text-sm text-slate-500">{c.cli_celu?.trim() || c.cli_tel1?.trim() || "Sin teléfono registrado"}</p>
               </div>
-              <span className="shrink-0 text-xs text-blue-700">Ver ficha →</span>
+              <Link href={`/dashboard/clientes/${c.cli_id}`} className="shrink-0 rounded-md bg-slate-900 px-3 py-2 text-xs font-medium text-white">Ver ficha</Link>
             </div>
             <p className="mt-3 truncate text-xs text-slate-500">{c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "Sin email registrado"}</p>
-          </Link>
+            <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
+              <Link href={`/dashboard/clientes/${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-slate-700">👤 Información</Link>
+              <Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-blue-700">🐾 Ver mascotas</Link>
+            </div>
+          </article>
         ))}
         {(!clientes || clientes.length === 0) && <p className="rounded-xl border bg-white p-8 text-center text-slate-400">Sin resultados</p>}
       </div>
@@ -140,6 +144,7 @@ export default async function ClientesPage({
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Email</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Teléfono</th>
               <th className="px-4 py-2.5 text-left font-medium text-slate-600">Mascotas</th>
+              <th className="px-4 py-2.5 text-left font-medium text-slate-600">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -153,12 +158,13 @@ export default async function ClientesPage({
                   {c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "—"}
                 </td>
                 <td className="px-4 py-2.5 text-slate-600">{c.cli_tel1?.trim() || "—"}</td>
-                <td className="px-4 py-2.5"><Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="text-sm text-blue-700 hover:underline">🐾 Ver mascotas</Link></td>
+                <td className="px-4 py-2.5"><Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">🐾 Ver mascotas</Link></td>
+                <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1.5"><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700">👤 Ficha</Link><Link href={`/dashboard/turnos?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">🗓️ Turno</Link></div></td>
               </tr>
             ))}
             {(!clientes || clientes.length === 0) && (
               <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-slate-400">
+                <td colSpan={8} className="px-4 py-8 text-center text-slate-400">
                   Sin resultados
                 </td>
               </tr>
