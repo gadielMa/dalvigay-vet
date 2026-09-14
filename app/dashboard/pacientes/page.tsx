@@ -9,14 +9,15 @@ const ESPECIE: Record<string, string> = { C: "🐶", F: "🐱", AVE: "🐦" };
 export default async function PacientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mascota?: string; dueño?: string; vet?: string; cliente_id?: string; page?: string }>;
+  searchParams: Promise<{ mascota?: string; dueño?: string; vet?: string; cliente_id?: string; bajas?: string; page?: string }>;
 }) {
-  const { mascota = "", dueño = "", vet = "", cliente_id = "", page = "1" } = await searchParams;
+  const { mascota = "", dueño = "", vet = "", cliente_id = "", bajas = "", page = "1" } = await searchParams;
   const supabase = createAdminClient();
   const current = Math.max(1, parseInt(page));
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
   const hayFiltro = mascota || dueño || vet || cliente_id;
+  const verBajas = bajas === "1";
 
   // IDs de pacientes por dueño
   let idsPorDueño: number[] | null = null;
@@ -62,11 +63,13 @@ export default async function PacientesPage({
   let query = supabase
     .from("pacientes")
     .select(
-      "pac_id, pac_nombre, pac_raz_nombre, pac_raz_siglas, pac_sexo, pac_cliente, pac_fecha_nac, pac_microchip",
+      "pac_id, pac_nombre, pac_raz_nombre, pac_raz_siglas, pac_sexo, pac_cliente, pac_fecha_nac, pac_microchip, pac_fecha_des",
       { count: "exact" },
     )
     .order("pac_nombre")
     .range(from, to);
+
+  if (!verBajas) query = query.or("pac_fecha_des.is.null,pac_fecha_des.neq.Inactivo");
 
   if (cliente_id && Number.isInteger(Number(cliente_id))) query = query.eq("pac_cliente", Number(cliente_id));
 
@@ -119,6 +122,9 @@ export default async function PacientesPage({
               <Button variant="outline" size="sm">Limpiar</Button>
             </Link>
           )}
+          <Link href={verBajas ? "/dashboard/pacientes" : "/dashboard/pacientes?bajas=1"}>
+            <Button variant="outline" size="sm">{verBajas ? "Ocultar bajas" : "Ver dadas de baja"}</Button>
+          </Link>
         </div>
       </form>
 
