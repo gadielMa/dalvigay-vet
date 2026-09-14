@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { NuevaConsulta } from "./NuevaConsulta";
 import { PacienteActions } from "./PacienteActions";
 import { ClinicalAdditions } from "./ClinicalAdditions";
+import { EliminarEcografia } from "./EliminarEcografia";
 import { PrintPatientButton } from "./PrintPatientButton";
 import { argentinaDate } from "@/lib/date";
 
@@ -232,8 +233,9 @@ export default async function PacienteDetailPage({
           <div className="space-y-2">
             {ecografias.map((e) => (
               <div key={e.eco_id} className="bg-white rounded-xl border p-3 shadow-sm">
-                <div className="text-xs font-medium text-slate-700 mb-1">
+                <div className="flex flex-wrap items-start justify-between gap-2 text-xs font-medium text-slate-700 mb-1">
                   {e.eco_fecha?.trim() || "Sin fecha"} · {e.eco_estudio?.trim() || "Ecografía"} · Dr/a: {e.eco_dr?.trim() || "—"}
+                  <EliminarEcografia id={Number(e.eco_id)} />
                 </div>
                 {e.eco_diag?.trim() && (
                   <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{e.eco_diag.trim()}</p>
