@@ -137,6 +137,8 @@
     @apply font-sans;
   }
   button, input, select, textarea { touch-action: manipulation; }
+  main details > summary { min-height: 2.25rem; display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.7rem; border-radius: 0.55rem; font-size: 0.875rem; line-height: 1.25rem; }
+  main details > summary::marker { font-size: 0.75rem; }
   @media (max-width: 640px) {
     main table { min-width: 680px; font-size: 0.75rem; }
     main th, main td { white-space: nowrap; }
