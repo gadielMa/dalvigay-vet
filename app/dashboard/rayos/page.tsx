@@ -56,7 +56,7 @@ export default async function RayosPage({
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-slate-800">Rayos X</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-xl font-semibold text-slate-800">Rayos X</h1><Link href="/dashboard/pacientes"><Button size="sm">+ Nuevo Rayos X</Button></Link></div>
         <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros</p>
       </div>
 

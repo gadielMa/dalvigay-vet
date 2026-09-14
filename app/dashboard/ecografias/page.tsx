@@ -56,7 +56,7 @@ export default async function EcografiasPage({
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-slate-800">Ecografías</h1>
+        <div className="flex flex-wrap items-center justify-between gap-2"><h1 className="text-xl font-semibold text-slate-800">Ecografías</h1><Link href="/dashboard/pacientes"><Button size="sm">+ Nueva ecografía</Button></Link></div>
         <p className="text-xs text-slate-500">{total.toLocaleString("es-AR")} registros</p>
       </div>
 
