@@ -44,10 +44,6 @@ export default async function DashboardLayout({
       <div className="flex flex-1">
       {/* Sidebar */}
       <aside className="hidden w-56 shrink-0 flex-col border-r bg-white md:flex">
-        <div className="px-4 py-5 border-b">
-          <div className="text-2xl font-bold text-slate-800 tracking-tight">🐾 Dalvigay</div>
-          <div className="text-xs text-slate-500 mt-0.5">Veterinaria</div>
-        </div>
         <nav className="flex-1 py-3 space-y-0.5 px-2">
           {nav.map((item) => (
             <Link
@@ -59,12 +55,6 @@ export default async function DashboardLayout({
             </Link>
           ))}
         </nav>
-        <div className="px-4 py-4 border-t">
-          <div className="text-xs text-slate-500 mb-2">
-            {session.nombre} · {session.permiso === "777" ? "Admin" : "Usuario"}
-          </div>
-          <LogoutButton />
-        </div>
       </aside>
 
       {/* Main */}

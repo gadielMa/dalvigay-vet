@@ -125,7 +125,7 @@ export default async function ClientesPage({
             </div>
             <p className="mt-3 truncate text-xs text-slate-500">{c.cli_mail?.trim() && c.cli_mail !== "0" ? c.cli_mail.trim() : "Sin email registrado"}</p>
             <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
-              <Link href={`/dashboard/clientes/${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-slate-700">👤 Información</Link>
+              <Link href={`/dashboard/clientes/${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-slate-700">✏️ Editar</Link>
               <Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-blue-700">🐾 Ver mascotas</Link>
             </div>
           </article>
@@ -159,7 +159,7 @@ export default async function ClientesPage({
                 </td>
                 <td className="px-4 py-2.5 text-slate-600">{c.cli_tel1?.trim() || "—"}</td>
                 <td className="px-4 py-2.5"><Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">🐾 Ver mascotas</Link></td>
-                <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1.5"><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700">👤 Ficha</Link><Link href={`/dashboard/turnos?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">🗓️ Turno</Link></div></td>
+                <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1.5"><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700">👤 Ficha</Link><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">✏️ Editar</Link><Link href={`/dashboard/turnos?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">🗓️ Turno</Link></div></td>
               </tr>
             ))}
             {(!clientes || clientes.length === 0) && (
