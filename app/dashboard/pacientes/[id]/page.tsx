@@ -6,6 +6,7 @@ import { NuevaConsulta } from "./NuevaConsulta";
 import { PacienteActions } from "./PacienteActions";
 import { ClinicalAdditions } from "./ClinicalAdditions";
 import { EliminarEcografia } from "./EliminarEcografia";
+import { EliminarRegistro } from "./EliminarRegistro";
 import { PrintPatientButton } from "./PrintPatientButton";
 import { BajaPaciente } from "./BajaPaciente";
 import { argentinaDate } from "@/lib/date";
@@ -187,7 +188,7 @@ export default async function PacienteDetailPage({
       {/* Vacunas */}
       {vacunas && vacunas.length > 0 && (
         <Section title="💉 Vacunas" count={vacunas.length}>
-          <div className="space-y-2 md:hidden">{vacunas.map((v) => <article key={v.vac_id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-800">{v.vac_marca?.trim() || "Vacuna"}</p><p className="mt-1 text-sm text-slate-600">{v.vac_clase?.trim() || "Clase sin registrar"}</p></div>{v.vac_fproxima?.trim() && <span className="shrink-0 rounded-full bg-amber-50 px-2 py-1 text-xs text-amber-700">Próxima: {v.vac_fproxima.trim()}</span>}</div><div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs text-slate-500"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Importe: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span><span>Dr/a: {v.vac_dr?.trim() || "—"}</span></div></article>)}</div>
+          <div className="space-y-2 md:hidden">{vacunas.map((v) => <article key={v.vac_id} className="rounded-xl border bg-white p-4 shadow-sm"><div className="flex items-start justify-between gap-3"><div><p className="font-semibold text-slate-800">{v.vac_marca?.trim() || "Vacuna"}</p><p className="mt-1 text-sm text-slate-600">{v.vac_clase?.trim() || "Clase sin registrar"}</p></div><EliminarRegistro tipo="vacuna" id={Number(v.vac_id)} /></div><div className="mt-3 grid grid-cols-2 gap-2 border-t pt-3 text-xs text-slate-500"><span>Visita: {v.vac_fvisita?.trim() || "—"}</span><span>Serie: {v.vac_nserie?.trim() || "—"}</span><span>Importe: ${Number(v.vac_tot || 0).toLocaleString("es-AR")}</span><span>Dr/a: {v.vac_dr?.trim() || "—"}</span><span className="col-span-2">{v.vac_fproxima?.trim() ? `Próxima: ${v.vac_fproxima.trim()}` : "Sin próxima fecha"}</span></div></article>)}</div>
           <div className="hidden overflow-x-auto rounded-xl border bg-white shadow-sm md:block">
             <table className="w-full text-xs">
               <thead className="bg-slate-50 border-b">
@@ -219,6 +220,7 @@ export default async function PacienteDetailPage({
                     <td className="px-3 py-2">{v.vac_facturar === "1" ? <span className="text-green-700">A facturar</span> : "—"}</td>
                     <td className="px-3 py-2">{v.vac_resaltado === "1" && <span className="mr-1 rounded bg-amber-100 px-1 text-amber-800">Destacada</span>}{v.vac_incluir === "1" ? <span className="text-green-700">Incluida</span> : <span className="text-slate-400">No incluida</span>}</td>
                     <td className="px-3 py-2 text-slate-500">{v.vac_dr?.trim() || "—"}</td>
+                    <td className="px-3 py-2"><EliminarRegistro tipo="vacuna" id={Number(v.vac_id)} /></td>
                   </tr>
                 ))}
               </tbody>
@@ -303,16 +305,16 @@ export default async function PacienteDetailPage({
 
       {orinas && orinas.length > 0 && <Section title="🧪 Análisis de orina" count={orinas.length}><RegistrosCompletos registros={orinas} fecha="ori_fecha" titulo="ori_dr" /></Section>}
       {quimicas && quimicas.length > 0 && <Section title="⚗️ Química sanguínea" count={quimicas.length}><RegistrosCompletos registros={quimicas} fecha="qs_fvisita" titulo="qs_dr" /></Section>}
-      {ectoendos && ectoendos.length > 0 && <Section title="🪱 Ecto / endoparasitarios" count={ectoendos.length}><RegistrosCompletos registros={ectoendos} fecha="ee_fvisita" titulo="ee_tipo" /></Section>}
-      {electros && electros.length > 0 && <Section title="❤️ Electrocardiogramas" count={electros.length}><RegistrosCompletos registros={electros} fecha="ele_fecha" titulo="ele_estudio" /></Section>}
-      {estudios && estudios.length > 0 && <Section title="🔎 Estudios" count={estudios.length}><RegistrosCompletos registros={estudios} fecha="est_fvisita" titulo="est_titulo" /></Section>}
+      {ectoendos && ectoendos.length > 0 && <Section title="🪱 Ecto / endoparasitarios" count={ectoendos.length}><RegistrosCompletos registros={ectoendos} fecha="ee_fvisita" titulo="ee_tipo" deleteTipo="ectoendo" deleteId="ee_id" /></Section>}
+      {electros && electros.length > 0 && <Section title="❤️ Electrocardiogramas" count={electros.length}><RegistrosCompletos registros={electros} fecha="ele_fecha" titulo="ele_estudio" deleteTipo="electro" deleteId="ele_id" /></Section>}
+      {estudios && estudios.length > 0 && <Section title="🔎 Estudios" count={estudios.length}><RegistrosCompletos registros={estudios} fecha="est_fvisita" titulo="est_titulo" deleteTipo="estudio" deleteId="est_id" /></Section>}
       {movimientos && movimientos.length > 0 && <Section title="🕒 Movimientos registrados" count={movimientos.length}><RegistrosCompletos registros={movimientos} fecha="mov_fecha" titulo="mov_persona" /></Section>}
     </div>
   );
 }
 
-function RegistrosCompletos({ registros, fecha, titulo }: { registros: Record<string, unknown>[]; fecha: string; titulo: string }) {
-  return <div className="space-y-3">{registros.map((registro, index) => <details key={index} className="rounded-xl border bg-white p-4 shadow-sm"><summary className="cursor-pointer list-none text-sm font-medium text-slate-800"><span>{texto(registro[fecha]) || "Sin fecha"}</span><span className="text-slate-500"> · {texto(registro[titulo]) || "Ver resultados completos"}</span><span className="float-right text-xs text-blue-700">Ver detalle</span></summary><dl className="mt-4 grid gap-x-5 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">{Object.entries(registro).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && texto(value)).map(([key, value]) => <div key={key} className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{etiqueta(key)}</dt><dd className="break-words text-slate-800">{texto(value)}</dd></div>)}</dl></details>)}</div>;
+function RegistrosCompletos({ registros, fecha, titulo, deleteTipo, deleteId }: { registros: Record<string, unknown>[]; fecha: string; titulo: string; deleteTipo?: "vacuna" | "estudio" | "electro" | "ectoendo"; deleteId?: string }) {
+  return <div className="space-y-3">{registros.map((registro, index) => <details key={index} className="rounded-xl border bg-white p-4 shadow-sm"><summary className="cursor-pointer list-none text-sm font-medium text-slate-800"><span>{texto(registro[fecha]) || "Sin fecha"}</span><span className="text-slate-500"> · {texto(registro[titulo]) || "Ver resultados completos"}</span>{deleteTipo && deleteId && <span className="float-right ml-2" onClick={(event) => event.preventDefault()}><EliminarRegistro tipo={deleteTipo} id={Number(registro[deleteId])} /></span>}<span className="float-right text-xs text-blue-700">Ver detalle</span></summary><dl className="mt-4 grid gap-x-5 gap-y-3 border-t pt-4 text-sm sm:grid-cols-2">{Object.entries(registro).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && texto(value)).map(([key, value]) => <div key={key} className="min-w-0"><dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{etiqueta(key)}</dt><dd className="break-words text-slate-800">{texto(value)}</dd></div>)}</dl></details>)}</div>;
 }
 
 function texto(value: unknown) { const result = String(value ?? "").trim(); return result === "0" ? "" : result; }
