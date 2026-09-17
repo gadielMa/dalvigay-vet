@@ -170,14 +170,7 @@ export default async function PacienteDetailPage({
                     {r.hcr_dr?.trim() && <span>Dr/a: {r.hcr_dr.trim()}</span>}
                   </div>
                 </div>
-                {r.hcr_detalle?.trim() && (
-                  <div
-                    className="text-xs text-slate-600 leading-relaxed mt-2"
-                    dangerouslySetInnerHTML={{
-                      __html: r.hcr_detalle.trim().replace(/<script[^>]*>.*?<\/script>/gi, ""),
-                    }}
-                  />
-                )}
+                <ClinicalRecord record={r} />
               </div>
             ))}
           </div>
@@ -308,7 +301,7 @@ export default async function PacienteDetailPage({
       {ectoendos && ectoendos.length > 0 && <Section title="🪱 Ecto / endoparasitarios" count={ectoendos.length}><RegistrosCompletos registros={ectoendos} fecha="ee_fvisita" titulo="ee_tipo" deleteTipo="ectoendo" deleteId="ee_id" /></Section>}
       {electros && electros.length > 0 && <Section title="❤️ Electrocardiogramas" count={electros.length}><RegistrosCompletos registros={electros} fecha="ele_fecha" titulo="ele_estudio" deleteTipo="electro" deleteId="ele_id" /></Section>}
       {estudios && estudios.length > 0 && <Section title="🔎 Estudios" count={estudios.length}><RegistrosCompletos registros={estudios} fecha="est_fvisita" titulo="est_titulo" deleteTipo="estudio" deleteId="est_id" /></Section>}
-      {movimientos && movimientos.length > 0 && <Section title="🕒 Movimientos registrados" count={movimientos.length}><RegistrosCompletos registros={movimientos} fecha="mov_fecha" titulo="mov_persona" /></Section>}
+      {movimientos && movimientos.length > 0 && <details className="mb-6 rounded-xl border bg-white p-4 text-xs text-slate-500"><summary className="cursor-pointer font-medium text-slate-600">Ver {movimientos.length} movimientos técnicos de importación</summary><div className="mt-3"><RegistrosCompletos registros={movimientos} fecha="mov_fecha" titulo="mov_persona" /></div></details>}
     </div>
   );
 }
@@ -319,6 +312,35 @@ function RegistrosCompletos({ registros, fecha, titulo, deleteTipo, deleteId }: 
 
 function texto(value: unknown) { const result = String(value ?? "").trim(); return result === "0" ? "" : result; }
 function etiqueta(key: string) { return key.replace(/^(ori|qs|ee|ele|est|mov|hem|vac|eco|ray)_/i, "").replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase()); }
+
+function ClinicalRecord({ record }: { record: Record<string, unknown> }) {
+  const parsed = parseClinicalDetail(texto(record.hcr_detalle));
+  if (!parsed.motivo && !parsed.campos.length && !parsed.notas) return null;
+  return <div className="mt-3 border-t pt-3 text-sm">
+    {parsed.motivo && <div className="rounded-lg bg-blue-50 px-3 py-2 text-slate-700"><span className="font-medium text-blue-900">Motivo de consulta: </span>{parsed.motivo}</div>}
+    {parsed.campos.length > 0 && <dl className="mt-3 grid gap-x-5 gap-y-2 sm:grid-cols-2">{parsed.campos.map(([label, value]) => <div key={label}><dt className="text-xs font-medium text-slate-500">{label}</dt><dd className="whitespace-pre-wrap text-slate-700">{value}</dd></div>)}</dl>}
+    {parsed.notas && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{parsed.notas}</p>}
+  </div>;
+}
+
+function parseClinicalDetail(detail: string) {
+  const lines = detail.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  let motivo = "";
+  const campos: [string, string][] = [];
+  const notas: string[] = [];
+  const labels = new Set(["enfermedades", "enfermedades previas", "cirugias", "toma medicamentos", "toma medicacion", "dieta", "vacunas", "desparasitados", "desparasitado", "inspeccion", "palpacion de organos", "auscultacion", "signos clinicos", "diagnostico presuntivo", "metodos complementarios solicitados", "tratamiento"]);
+  for (const line of lines) {
+    const match = line.match(/^([^:]{2,60}):\s*(.+)$/);
+    if (!match) { notas.push(line); continue; }
+    const label = match[1].trim();
+    const value = match[2].trim();
+    const normalized = label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (normalized === "motivo de consulta") { motivo = value; continue; }
+    if (labels.has(normalized)) { campos.push([label, value]); continue; }
+    notas.push(line);
+  }
+  return { motivo, campos, notas: notas.join("\n") };
+}
 
 type Evento = { icono: string; tipo: string; fecha: string; detalle: string };
 function eventos(registros: Record<string, unknown>[], icono: string, tipo: string, campoFecha: string, campoDetalle: string): Evento[] { return registros.map(registro => ({ icono, tipo, fecha: texto(registro[campoFecha]) || "Sin fecha", detalle: texto(registro[campoDetalle]) || "Sin detalle" })); }

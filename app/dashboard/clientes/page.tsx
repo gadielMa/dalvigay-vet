@@ -3,20 +3,21 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NuevoCliente } from "./NuevoCliente";
+import { ArchivarCliente } from "./ArchivarCliente";
 
 const PAGE_SIZE = 50;
 
 export default async function ClientesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ dueño?: string; mascota?: string; vet?: string; cliente_id?: string; page?: string }>;
+  searchParams: Promise<{ dueño?: string; mascota?: string; vet?: string; cliente_id?: string; estado?: string; page?: string }>;
 }) {
-  const { dueño = "", mascota = "", vet = "", cliente_id = "", page = "1" } = await searchParams;
+  const { dueño = "", mascota = "", vet = "", cliente_id = "", estado = "activos", page = "1" } = await searchParams;
   const supabase = createAdminClient();
   const current = Math.max(1, parseInt(page));
   const from = (current - 1) * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;
-  const hayFiltro = dueño || mascota || vet;
+  const hayFiltro = dueño || mascota || vet || estado !== "activos";
 
   // IDs de clientes que cumplen el filtro de mascota
   let idsPorMascota: number[] | null = null;
@@ -60,7 +61,7 @@ export default async function ClientesPage({
   // Query principal
   let query = supabase
     .from("clientes")
-    .select("cli_id, cli_nombre, cli_apellido, cli_celu, cli_mail, cli_tel1", { count: "exact" })
+    .select("cli_id, cli_nombre, cli_apellido, cli_celu, cli_mail, cli_tel1, cli_archivado", { count: "exact" })
     .order("cli_apellido")
     .range(from, to);
 
@@ -68,6 +69,7 @@ export default async function ClientesPage({
     query = query.or(`cli_apellido.ilike.%${dueño}%,cli_nombre.ilike.%${dueño}%`);
   }
   if (cliente_id && Number.isInteger(Number(cliente_id))) query = query.eq("cli_id", Number(cliente_id));
+  query = query.eq("cli_archivado", estado === "archivados");
   if (idsFinales !== null) {
     if (idsFinales.length === 0) {
       query = query.eq("cli_id", -1); // sin resultados
@@ -80,7 +82,7 @@ export default async function ClientesPage({
   const total = count ?? 0;
   const pages = Math.ceil(total / PAGE_SIZE);
   const paginaHref = (p: number) =>
-    `?dueño=${dueño}&mascota=${mascota}&vet=${vet}&cliente_id=${cliente_id}&page=${p}`;
+    `?dueño=${dueño}&mascota=${mascota}&vet=${vet}&cliente_id=${cliente_id}&estado=${estado}&page=${p}`;
 
   return (
     <div>
@@ -101,6 +103,10 @@ export default async function ClientesPage({
         <div className="space-y-1">
           <label className="text-xs font-medium text-slate-500">🩺 Veterinario</label>
           <Input name="vet" defaultValue={vet} placeholder="Nombre del veterinario…" className="text-sm" />
+        </div>
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-slate-500">Estado</label>
+          <select name="estado" defaultValue={estado} className="h-9 w-full rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700"><option value="activos">Activos</option><option value="archivados">Archivados</option></select>
         </div>
         <div className="flex gap-2 sm:col-span-3">
           <Button type="submit" size="sm">Buscar</Button>
@@ -127,6 +133,7 @@ export default async function ClientesPage({
             <div className="mt-3 flex flex-wrap gap-2 border-t pt-3">
               <Link href={`/dashboard/clientes/${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-slate-700">✏️ Editar</Link>
               <Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="rounded-md border px-3 py-2 text-xs font-medium text-blue-700">🐾 Ver mascotas</Link>
+              <ArchivarCliente id={Number(c.cli_id)} nombre={`${c.cli_nombre?.trim() || ""} ${c.cli_apellido?.trim() || ""}`.trim() || `Cliente #${c.cli_id}`} archivado={Boolean(c.cli_archivado)} />
             </div>
           </article>
         ))}
@@ -159,7 +166,7 @@ export default async function ClientesPage({
                 </td>
                 <td className="px-4 py-2.5 text-slate-600">{c.cli_tel1?.trim() || "—"}</td>
                 <td className="px-4 py-2.5"><Link href={`/dashboard/pacientes?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100">🐾 Ver mascotas</Link></td>
-                <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1.5"><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700">👤 Ficha</Link><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">✏️ Editar</Link><Link href={`/dashboard/turnos?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">🗓️ Turno</Link></div></td>
+                <td className="px-4 py-2.5"><div className="flex flex-wrap gap-1.5"><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md bg-slate-900 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-slate-700">👤 Ficha</Link><Link href={`/dashboard/clientes/${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">✏️ Editar</Link><Link href={`/dashboard/turnos?cliente_id=${c.cli_id}`} className="inline-flex rounded-md border px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50">🗓️ Turno</Link><ArchivarCliente id={Number(c.cli_id)} nombre={`${c.cli_nombre?.trim() || ""} ${c.cli_apellido?.trim() || ""}`.trim() || `Cliente #${c.cli_id}`} archivado={Boolean(c.cli_archivado)} /></div></td>
               </tr>
             ))}
             {(!clientes || clientes.length === 0) && (
