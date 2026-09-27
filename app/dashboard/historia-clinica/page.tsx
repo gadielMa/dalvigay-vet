@@ -32,7 +32,7 @@ export default async function HistoriaClinicaPage({
   let query = supabase
     .from("hcren")
     .select(
-      "hcr_id, hcr_hcc_idpaciente, hcr_fecha_hc, hcr_titulo, hcr_peso, hcr_temp, hcr_detalle, hcr_dr",
+      "*",
       { count: "exact" },
     )
     .order("hcr_fecha_hc", { ascending: false })
@@ -124,7 +124,7 @@ export default async function HistoriaClinicaPage({
                 )}
               </div>
             </div>
-            {r.hcr_detalle?.trim() && <details className="mt-2 border-t pt-2"><summary className="cursor-pointer text-xs font-medium text-blue-700">Ver detalle completo</summary><div className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-slate-600" dangerouslySetInnerHTML={{ __html: r.hcr_detalle.trim().replace(/<script[^>]*>.*?<\/script>/gi, "") }} /></details>}
+            <details className="mt-2 border-t pt-2"><summary className="cursor-pointer text-xs font-medium text-blue-700">Ver detalle completo</summary><div className="mt-3 grid gap-x-5 gap-y-3 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">{Object.entries(r).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && String(value ?? "").trim() && String(value).trim() !== "0").map(([key, value]) => <div key={key} className="min-w-0"><dt className="font-medium uppercase tracking-wide text-slate-500">{labelCampo(key)}</dt><dd className="mt-1 break-words whitespace-pre-wrap leading-relaxed text-slate-700">{String(value).trim()}</dd></div>)}</div></details>
           </div>
         ))}
         {(!registros || registros.length === 0) && (
@@ -163,4 +163,8 @@ export default async function HistoriaClinicaPage({
       )}
     </div>
   );
+}
+
+function labelCampo(key: string) {
+  return key.replace(/^hcr_?/i, "").replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
