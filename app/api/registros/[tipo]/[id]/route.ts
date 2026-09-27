@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireSession } from "@/lib/operacion";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const config = { vacuna: { table: "vacunas", id: "vac_id" }, estudio: { table: "estudios", id: "est_id" }, electro: { table: "electrocardio", id: "ele_id" }, ectoendo: { table: "ectoendo", id: "ee_id" } } as const;
+const config = { vacuna: { table: "vacunas", id: "vac_id" }, estudio: { table: "estudios", id: "est_id" }, electro: { table: "electrocardio", id: "ele_id" }, ectoendo: { table: "ectoendo", id: "ee_id" }, orina: { table: "orina", id: "ori_id" }, quimica: { table: "quimicasang", id: "qs_id" }, hemograma: { table: "hemogramas", id: "hem_id" }, rayos: { table: "rayos", id: "ray_id" } } as const;
 export async function DELETE(_request: Request, { params }: { params: Promise<{ tipo: string; id: string }> }) {
   try {
     await requireSession(); const { tipo, id: rawId } = await params; const selected = config[tipo as keyof typeof config]; const id = Number(rawId);

@@ -38,9 +38,14 @@ export async function login(
       normalizedName,
   );
 
-  if (error || !user) return { ok: false, error: "Usuario no encontrado" };
+  if (error) {
+    console.error("auth user lookup failed", error.message);
+    return { ok: false, error: "No se pudo verificar el usuario. Revisá la conexión con la base de datos." };
+  }
+  if (!user) return { ok: false, error: "Usuario no encontrado" };
 
-  const storedPass: string = user.usr_pass;
+  const storedPass = String(user.usr_pass ?? "");
+  if (!storedPass) return { ok: false, error: "El usuario no tiene una contraseña configurada" };
   let valid = false;
 
   if (storedPass.startsWith("$2")) {
