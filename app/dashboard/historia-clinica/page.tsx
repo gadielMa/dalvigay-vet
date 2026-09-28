@@ -124,8 +124,25 @@ export default async function HistoriaClinicaPage({
                 )}
               </div>
             </div>
-            <details className="mt-2 border-t pt-2"><summary className="cursor-pointer text-xs font-medium text-blue-700">Ver detalle completo</summary><div className="mt-3 grid gap-x-5 gap-y-3 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">{Object.entries(r).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && String(value ?? "").trim() && String(value).trim() !== "0").map(([key, value]) => <div key={key} className="min-w-0"><dt className="font-medium uppercase tracking-wide text-slate-500">{labelCampo(key)}</dt><dd className="mt-1 break-words whitespace-pre-wrap leading-relaxed text-slate-700">{String(value).trim()}</dd></div>)}</div></details>
-            {r.hcr_detalle?.trim() && <ClinicalRecord detail={r.hcr_detalle.trim()} />}
+            <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
+              {patientNames[String(r.hcr_hcc_idpaciente)] ? (
+                <Link
+                  href={`/dashboard/pacientes/${r.hcr_hcc_idpaciente}`}
+                  className="inline-flex min-h-9 items-center rounded-lg bg-slate-800 px-3 text-xs font-medium text-white hover:bg-slate-700"
+                >
+                  Abrir historia completa de la mascota →
+                </Link>
+              ) : (
+                <span className="text-xs text-amber-800">La ficha de esta mascota no está disponible en los datos importados.</span>
+              )}
+              <details className="min-w-0 flex-1">
+                <summary className="cursor-pointer text-xs font-medium text-blue-700">Ver datos de esta consulta</summary>
+                <div className="mt-3 grid gap-x-5 gap-y-3 rounded-lg bg-slate-50 p-3 text-xs sm:grid-cols-2">
+                  {Object.entries(r).filter(([key, value]) => !/^(.*_id|.*_idpaciente)$/i.test(key) && String(value ?? "").trim() && String(value).trim() !== "0").map(([key, value]) => <div key={key} className="min-w-0"><dt className="font-medium uppercase tracking-wide text-slate-500">{labelCampo(key)}</dt><dd className="mt-1 break-words whitespace-pre-wrap leading-relaxed text-slate-700">{String(value).trim()}</dd></div>)}
+                </div>
+              </details>
+            </div>
+            {r.hcr_detalle?.trim() && <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-500">Resumen de esta consulta: {r.hcr_detalle.trim()}</p>}
           </div>
         ))}
         {(!registros || registros.length === 0) && (
@@ -168,22 +185,4 @@ export default async function HistoriaClinicaPage({
 
 function labelCampo(key: string) {
   return key.replace(/^hcr_?/i, "").replaceAll("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function ClinicalRecord({ detail }: { detail: string }) {
-  const fields = parseClinicalDetail(detail);
-  if (!fields.length) return null;
-  return <div className="mt-3 grid gap-3 border-t pt-3 sm:grid-cols-2">{fields.map(([name, value]) => <div key={name} className="rounded-lg bg-slate-50 p-3"><div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">{name}</div><div className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{value}</div></div>)}</div>;
-}
-
-function parseClinicalDetail(detail: string): [string, string][] {
-  const labels = ["MOTIVO DE LA CONSULTA", "ENFERMEDADES PREVIAS", "CIRUGIAS", "TOMA MEDICACION", "TOMA MEDICAMENTOS", "DIETA", "VACUNAS", "DESPARASITADO", "DESPARASITADOS", "INSPECCION", "GANGLIOS", "PALPACION ORGANOS", "AUSCULTACION", "PULSO", "SIGNOS CLINICOS", "DIAGNOSTICO PRESUNTIVO", "METODOS COMPLEMENTARIOS SOLICITADOS", "TRATAMIENTO"];
-  const pattern = new RegExp(`(${labels.map((label) => label.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\\\$&")).join("|")})\\s*:\\s*`, "gi");
-  const matches = [...detail.matchAll(pattern)];
-  if (!matches.length) return [["Detalle clínico", detail]];
-  return matches.map<[string, string]>((match, index) => {
-    const start = (match.index ?? 0) + match[0].length;
-    const end = index + 1 < matches.length ? (matches[index + 1].index ?? detail.length) : detail.length;
-    return [match[1].trim(), detail.slice(start, end).replace(/\s*-\s*$/, "").trim()];
-  }).filter(([, value]) => value);
 }

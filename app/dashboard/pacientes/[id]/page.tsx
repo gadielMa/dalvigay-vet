@@ -68,9 +68,12 @@ export default async function PacienteDetailPage({
         <Link href="/dashboard/pacientes">
           <Button variant="outline" size="sm">← Volver</Button>
         </Link>
-        <h1 className="text-xl font-semibold text-slate-800">
-          {ESPECIE[paciente.pac_raz_siglas?.trim()] ?? "🐾"} {paciente.pac_nombre?.trim()}
-        </h1>
+        <div>
+          <h1 className="text-xl font-semibold text-slate-800">
+            {ESPECIE[paciente.pac_raz_siglas?.trim()] ?? "🐾"} {paciente.pac_nombre?.trim()}
+          </h1>
+          <p className="text-xs text-slate-500">Ficha e historia clínica completas</p>
+        </div>
         <PrintPatientButton />
       </div>
 
@@ -315,30 +318,49 @@ function etiqueta(key: string) { return key.replace(/^(ori|qs|ee|ele|est|mov|hem
 
 function ClinicalRecord({ record }: { record: Record<string, unknown> }) {
   const parsed = parseClinicalDetail(texto(record.hcr_detalle));
-  if (!parsed.motivo && !parsed.campos.length && !parsed.notas) return null;
+  const extraFields = Object.entries(record).filter(([key, value]) =>
+    key.startsWith("hcr_") &&
+    !["hcr_id", "hcr_hcc_idpaciente", "hcr_fecha_hc", "hcr_titulo", "hcr_dr", "hcr_peso", "hcr_temp", "hcr_detalle"].includes(key) &&
+    texto(value)
+  );
+  if (!parsed.motivo && !parsed.campos.length && !parsed.notas && !extraFields.length) return null;
   return <div className="mt-3 border-t pt-3 text-sm">
     {parsed.motivo && <div className="rounded-lg bg-blue-50 px-3 py-2 text-slate-700"><span className="font-medium text-blue-900">Motivo de consulta: </span>{parsed.motivo}</div>}
-    {parsed.campos.length > 0 && <dl className="mt-3 grid gap-x-5 gap-y-2 sm:grid-cols-2">{parsed.campos.map(([label, value]) => <div key={label}><dt className="text-xs font-medium text-slate-500">{label}</dt><dd className="whitespace-pre-wrap text-slate-700">{value}</dd></div>)}</dl>}
-    {parsed.notas && <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">{parsed.notas}</p>}
+    {parsed.campos.length > 0 && <dl className="mt-3 grid gap-x-5 gap-y-2 sm:grid-cols-2">{parsed.campos.map(([label, value], index) => <div key={`${label}-${index}`}><dt className="text-xs font-medium text-slate-500">{label}</dt><dd className="whitespace-pre-wrap text-slate-700">{value}</dd></div>)}</dl>}
+    {parsed.notas && <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">{parsed.notas}</div>}
+    {extraFields.length > 0 && <dl className="mt-3 grid gap-3 sm:grid-cols-2">{extraFields.map(([key, value]) => <div key={key} className="rounded-lg bg-slate-50 p-3"><dt className="text-xs font-medium text-slate-500">{etiqueta(key.replace(/^hcr_/, ""))}</dt><dd className="mt-1 break-words whitespace-pre-wrap text-slate-700">{texto(value)}</dd></div>)}</dl>}
   </div>;
 }
 
 function parseClinicalDetail(detail: string) {
-  const lines = detail.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const labels = [
+    "MOTIVO DE LA CONSULTA", "MOTIVO DE CONSULTA", "ENFERMEDADES PREVIAS", "ENFERMEDADES",
+    "CIRUGÍAS", "CIRUGIAS", "TOMA MEDICACIÓN", "TOMA MEDICACION", "TOMA MEDICAMENTOS",
+    "DIETA", "VACUNAS", "DESPARASITADOS", "DESPARASITADO", "INSPECCIÓN", "INSPECCION",
+    "GANGLIOS", "PALPACIÓN DE ÓRGANOS", "PALPACION DE ORGANOS", "PALPACIÓN ÓRGANOS",
+    "PALPACION ORGANOS", "AUSCULTACIÓN", "AUSCULTACION", "PULSO", "SIGNOS CLÍNICOS",
+    "SIGNOS CLINICOS", "DIAGNÓSTICO PRESUNTIVO", "DIAGNOSTICO PRESUNTIVO",
+    "MÉTODOS COMPLEMENTARIOS SOLICITADOS", "METODOS COMPLEMENTARIOS SOLICITADOS", "TRATAMIENTO",
+  ];
+  const pattern = new RegExp(`(${labels.join("|")})\\s*:\\s*`, "gi");
+  const matches = [...detail.matchAll(pattern)];
+  if (!matches.length) return { motivo: "", campos: [] as [string, string][], notas: detail };
+
   let motivo = "";
   const campos: [string, string][] = [];
   const notas: string[] = [];
-  const labels = new Set(["enfermedades", "enfermedades previas", "cirugias", "toma medicamentos", "toma medicacion", "dieta", "vacunas", "desparasitados", "desparasitado", "inspeccion", "palpacion de organos", "auscultacion", "signos clinicos", "diagnostico presuntivo", "metodos complementarios solicitados", "tratamiento"]);
-  for (const line of lines) {
-    const match = line.match(/^([^:]{2,60}):\s*(.+)$/);
-    if (!match) { notas.push(line); continue; }
+  const introduction = detail.slice(0, matches[0].index).trim();
+  if (introduction) notas.push(introduction);
+  matches.forEach((match, index) => {
+    const start = (match.index ?? 0) + match[0].length;
+    const end = index + 1 < matches.length ? (matches[index + 1].index ?? detail.length) : detail.length;
     const label = match[1].trim();
-    const value = match[2].trim();
+    const value = detail.slice(start, end).trim();
+    if (!value) return;
     const normalized = label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if (normalized === "motivo de consulta") { motivo = value; continue; }
-    if (labels.has(normalized)) { campos.push([label, value]); continue; }
-    notas.push(line);
-  }
+    if (normalized === "motivo de consulta" || normalized === "motivo de la consulta") motivo = value;
+    else campos.push([label, value]);
+  });
   return { motivo, campos, notas: notas.join("\n") };
 }
 
